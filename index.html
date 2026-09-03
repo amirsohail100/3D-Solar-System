@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Solar System with Real Proportional Distances & Space Fabric</title>
+    <title>3D Solar System with Dynamic Space Fabric Polygons</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -41,7 +41,7 @@
     <!-- UI Panel -->
     <div id="ui-panel" class="glass-panel absolute top-6 left-6 w-80 rounded-2xl p-6 z-10 transition-all duration-300 max-h-[90vh] overflow-y-auto">
         <h1 class="text-2xl font-bold mb-1 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-teal-300 to-emerald-400">Solar System</h1>
-        <p class="text-xs text-gray-400 mb-5">Proportional Scale & Relativity Fabric</p>
+        <p class="text-xs text-gray-400 mb-5">Dynamic Fabric & Proportional Scale</p>
 
         <!-- Controls Container -->
         <div class="space-y-4 text-sm">
@@ -114,7 +114,7 @@
             <div class="flex items-center justify-between pt-2 border-t border-white/10">
                 <div>
                     <span class="text-purple-300 font-semibold block">Space Fabric</span>
-                    <span class="text-[10px] text-gray-400 block">Einstein's Curvature</span>
+                    <span class="text-[10px] text-gray-400 block" id="fabric-poly-info">Dynamic Polys: Auto</span>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" id="toggle-fabric" class="sr-only peer">
@@ -125,7 +125,7 @@
 
         <div class="mt-5 pt-3 border-t border-white/10 text-xs text-gray-400 space-y-1.5">
             <p>🌌 <b>Realistic Spacing:</b> Distances scaled to AU ratio</p>
-            <p>🌀 <b>Space Fabric:</b> Visualizes gravity curvature</p>
+            <p>⚡ <b>Dynamic LOD Fabric:</b> Polys reduce on zoom-out</p>
             <p>🎯 <b>Click Planet / Moon:</b> Auto Focus Target</p>
         </div>
     </div>
@@ -365,16 +365,15 @@
         scene.add(starMesh);
 
         // ==========================================
-        // 4. PLANETS & MOONS DATA (REAL PROPORTIONAL DISTANCES)
+        // 4. PLANETS & MOONS DATA
         // ==========================================
         const sphereGeo = new THREE.SphereGeometry(1, 64, 64);
         const interactableObjects = [];
         const orbitLines = [];
         const moonTexture = createMoonTexture();
 
-        // Sun
         const sunRadius = 25;
-        const sunMass = 120; // Mass for Relativity Fabric warping
+        const sunMass = 120;
         const sunGroup = new THREE.Group();
         const sunMat = new THREE.MeshBasicMaterial({ map: createSunTexture() });
         const sunMesh = new THREE.Mesh(new THREE.SphereGeometry(sunRadius, 64, 64), sunMat);
@@ -390,15 +389,12 @@
         sunGroup.add(sunGlow); sunGroup.add(sunGlowOuter);
         scene.add(sunGroup);
 
-        // Planets Data based on real astronomical scale order (AU scaled)
         const planetsData = [
             { name: 'Mercury', radius: 1.2, distance: 75, mass: 15, speed: 0.035, rotSpeed: 0.01, texture: createMercuryTexture(), roughness: 0.7 },
             { name: 'Venus', radius: 2.2, distance: 110, mass: 22, speed: 0.022, rotSpeed: -0.004, texture: createVenusTexture(), roughness: 0.4 },
             { 
                 name: 'Earth', radius: 2.5, distance: 150, mass: 25, speed: 0.015, rotSpeed: 0.02, texture: createEarthTexture(), roughness: 0.3,
-                moons: [
-                    { name: 'Moon', radius: 0.6, distance: 6, speed: 0.04 }
-                ]
+                moons: [{ name: 'Moon', radius: 0.6, distance: 6, speed: 0.04 }]
             },
             { 
                 name: 'Mars', radius: 1.6, distance: 210, mass: 18, speed: 0.011, rotSpeed: 0.018, texture: createMarsTexture(), roughness: 0.7,
@@ -419,9 +415,7 @@
             { 
                 name: 'Saturn', radius: 7.5, distance: 650, mass: 50, speed: 0.003, rotSpeed: 0.038, texture: createSaturnTexture(), roughness: 0.4,
                 rings: { inner: 10, outer: 19, texture: createSaturnRingTexture() },
-                moons: [
-                    { name: 'Titan', radius: 0.85, distance: 24, speed: 0.025 }
-                ]
+                moons: [{ name: 'Titan', radius: 0.85, distance: 24, speed: 0.025 }]
             },
             { name: 'Uranus', radius: 4.5, distance: 1000, mass: 35, speed: 0.0018, rotSpeed: -0.03, texture: createUranusTexture(), roughness: 0.3,
               rings: { inner: 6, outer: 8.5, texture: createSaturnRingTexture() } },
@@ -432,7 +426,6 @@
         const allMoons = [];
 
         planetsData.forEach(data => {
-            // Planet Orbit Line
             const points = [];
             for (let i = 0; i <= 256; i++) {
                 const angle = (i / 256) * Math.PI * 2;
@@ -443,12 +436,7 @@
             scene.add(orbitLine);
             orbitLines.push(orbitLine);
 
-            // Planet Mesh
-            const mat = new THREE.MeshStandardMaterial({ 
-                map: data.texture, 
-                roughness: data.roughness,
-                metalness: 0.05
-            });
+            const mat = new THREE.MeshStandardMaterial({ map: data.texture, roughness: data.roughness, metalness: 0.05 });
             const mesh = new THREE.Mesh(sphereGeo, mat);
             mesh.scale.setScalar(data.radius);
             mesh.userData = { name: data.name, radius: data.radius, mass: data.mass };
@@ -456,7 +444,6 @@
             const startAngle = Math.random() * Math.PI * 2;
             mesh.position.set(Math.cos(startAngle) * data.distance, 0, Math.sin(startAngle) * data.distance);
 
-            // Rings
             if (data.rings) {
                 const ringGeo = new THREE.RingGeometry(data.rings.inner, data.rings.outer, 64);
                 let pos = ringGeo.attributes.position;
@@ -465,14 +452,7 @@
                     v3.fromBufferAttribute(pos, i);
                     ringGeo.attributes.uv.setXY(i, v3.length() < (data.rings.inner + data.rings.outer)/2 ? 0 : 1, 1);
                 }
-
-                const ringMat = new THREE.MeshStandardMaterial({
-                    map: data.rings.texture,
-                    side: THREE.DoubleSide,
-                    transparent: true,
-                    opacity: 0.85,
-                    roughness: 0.3
-                });
+                const ringMat = new THREE.MeshStandardMaterial({ map: data.rings.texture, side: THREE.DoubleSide, transparent: true, opacity: 0.85, roughness: 0.3 });
                 const ringMesh = new THREE.Mesh(ringGeo, ringMat);
                 ringMesh.rotation.x = Math.PI / 2 + 0.2;
                 mesh.add(ringMesh);
@@ -481,7 +461,6 @@
             scene.add(mesh);
             interactableObjects.push(mesh);
 
-            // Sub-Moons
             const moonInstances = [];
             if (data.moons) {
                 data.moons.forEach(mdata => {
@@ -503,68 +482,72 @@
                     scene.add(moonMesh);
                     interactableObjects.push(moonMesh);
 
-                    const moonObj = {
-                        ...mdata,
-                        mesh: moonMesh,
-                        orbitLine: moonOrbitLine,
-                        angle: Math.random() * Math.PI * 2
-                    };
-
+                    const moonObj = { ...mdata, mesh: moonMesh, orbitLine: moonOrbitLine, angle: Math.random() * Math.PI * 2 };
                     moonInstances.push(moonObj);
                     allMoons.push(moonObj);
                 });
             }
 
-            planets.push({
-                ...data,
-                mesh: mesh,
-                angle: startAngle,
-                lastPos: mesh.position.clone(),
-                moons: moonInstances
-            });
+            planets.push({ ...data, mesh: mesh, angle: startAngle, lastPos: mesh.position.clone(), moons: moonInstances });
         });
 
         // ==========================================
-        // 5. SPACE FABRIC / GENERAL RELATIVITY GRID
+        // 5. DYNAMIC LOD SPACE FABRIC (RELATIVITY)
         // ==========================================
         const fabricSize = 3000;
-        const fabricSegments = 140;
-        const fabricGeo = new THREE.PlaneGeometry(fabricSize, fabricSize, fabricSegments, fabricSegments);
-        fabricGeo.rotateX(-Math.PI / 2); // Lay flat on XZ plane
-
-        const fabricMat = new THREE.MeshBasicMaterial({
+        let currentFabricSegments = -1; // Track segment state to prevent redundant geometry rebuilding
+        let spaceFabricMesh = null;
+        let fabricMat = new THREE.MeshBasicMaterial({
             color: 0x8b5cf6,
             wireframe: true,
             transparent: true,
             opacity: 0.35
         });
 
-        const spaceFabricMesh = new THREE.Mesh(fabricGeo, fabricMat);
-        spaceFabricMesh.position.y = 0;
-        spaceFabricMesh.visible = false; // Hidden by default
-        scene.add(spaceFabricMesh);
+        function rebuildFabricGeometry(segments) {
+            if (currentFabricSegments === segments) return;
+            currentFabricSegments = segments;
 
-        const fabricPositions = fabricGeo.attributes.position;
-        const baseFabricY = new Float32Array(fabricPositions.count);
-        for(let i = 0; i < fabricPositions.count; i++) {
-            baseFabricY[i] = 0;
+            if (spaceFabricMesh) {
+                scene.remove(spaceFabricMesh);
+                spaceFabricMesh.geometry.dispose();
+            }
+
+            const fabricGeo = new THREE.PlaneGeometry(fabricSize, fabricSize, segments, segments);
+            fabricGeo.rotateX(-Math.PI / 2);
+
+            spaceFabricMesh = new THREE.Mesh(fabricGeo, fabricMat);
+            spaceFabricMesh.visible = document.getElementById('toggle-fabric').checked;
+            scene.add(spaceFabricMesh);
+
+            document.getElementById('fabric-poly-info').innerText = `Polys: ${segments}x${segments}`;
         }
 
-        function updateSpaceFabric() {
-            if (!spaceFabricMesh.visible) return;
+        // Initialize with default medium segments
+        rebuildFabricGeometry(80);
 
+        function updateSpaceFabric() {
+            if (!spaceFabricMesh || !spaceFabricMesh.visible) return;
+
+            // DYNAMIC LOD BASED ON CAMERA DISTANCE
+            const camDist = camera.position.distanceTo(controls.target);
+            let targetSegments = 60; // Far view: Low polys (high performance)
+            if (camDist < 600) targetSegments = 100; // Medium view
+            if (camDist < 200) targetSegments = 140; // Close-up view: High polys (detailed curvature)
+
+            rebuildFabricGeometry(targetSegments);
+
+            const fabricPositions = spaceFabricMesh.geometry.attributes.position;
             const posArray = fabricPositions.array;
+            
             for (let i = 0; i < fabricPositions.count; i++) {
                 const vx = posArray[i * 3];
                 const vz = posArray[i * 3 + 2];
 
                 let totalDepression = 0;
-
-                // Sun gravity depression
                 const distToSunSq = vx * vx + vz * vz;
                 totalDepression += (sunMass * 800) / (distToSunSq + 1200);
 
-                // Planets gravity depressions
                 planets.forEach(p => {
                     const dx = vx - p.mesh.position.x;
                     const dz = vz - p.mesh.position.z;
@@ -572,7 +555,7 @@
                     totalDepression += (p.mass * 350) / (distSq + 250);
                 });
 
-                posArray[i * 3 + 1] = -totalDepression; // Warp space downwards
+                posArray[i * 3 + 1] = -totalDepression;
             }
             fabricPositions.needsUpdate = true;
         }
@@ -592,7 +575,6 @@
         const toggleFabric = document.getElementById('toggle-fabric');
         const planetSelect = document.getElementById('planet-select');
 
-        // Zoom UI Elements
         const zoomSlider = document.getElementById('zoom-slider');
         const zoomDisplay = document.getElementById('zoom-display');
         const btnZoomIn = document.getElementById('btn-zoom-in');
@@ -659,7 +641,7 @@
         });
 
         toggleFabric.addEventListener('change', (e) => {
-            spaceFabricMesh.visible = e.target.checked;
+            if (spaceFabricMesh) spaceFabricMesh.visible = e.target.checked;
         });
 
         planetSelect.addEventListener('change', (e) => focusOnTarget(e.target.value));
@@ -758,7 +740,6 @@
                 
                 p.mesh.rotation.y += p.rotSpeed * timeScale;
 
-                // Animate Sub-Moons around host planet
                 p.moons.forEach(m => {
                     if (isPlaying) {
                         m.angle += m.speed * timeScale;
@@ -774,7 +755,6 @@
                     m.mesh.rotation.y += 0.01 * timeScale;
                 });
 
-                // Camera Tracking for Planets
                 if (currentTarget === p.name && !isAnimatingCamera) {
                     const delta = p.mesh.position.clone().sub(p.lastPos);
                     camera.position.add(delta);
@@ -784,7 +764,6 @@
                 p.lastPos.copy(p.mesh.position);
             });
 
-            // Camera Tracking for Moons
             if (currentTarget && !isAnimatingCamera) {
                 const activeMoon = allMoons.find(m => m.name === currentTarget);
                 if (activeMoon) {
@@ -792,7 +771,7 @@
                 }
             }
 
-            // Update space fabric gravity deformation
+            // Update space fabric gravity deformation & dynamic polygons
             updateSpaceFabric();
 
             controls.update();
