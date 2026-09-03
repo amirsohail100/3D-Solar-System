@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Solar System - Brightened Universe & White Orbits</title>
+    <title>Cosmic Hierarchy - Interactive 3D Universe</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -22,15 +22,22 @@
     </script>
 
     <style>
-        body { margin: 0; padding: 0; overflow: hidden; background-color: #03030c; color: white; user-select: none; font-family: sans-serif; }
+        body { margin: 0; padding: 0; overflow: hidden; background-color: #000003; color: white; user-select: none; font-family: sans-serif; }
         canvas { display: block; width: 100vw; height: 100vh; }
         
         .glass-panel {
-            background: rgba(10, 15, 30, 0.88);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.7);
+            background: rgba(8, 12, 24, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.6);
+        }
+
+        /* Collapsed Panel State */
+        #ui-panel.collapsed {
+            transform: translateX(-110%);
+            opacity: 0;
+            pointer-events: none;
         }
         
         select option { background: #0f172a; color: white; }
@@ -38,67 +45,82 @@
 </head>
 <body>
 
-    <!-- UI Panel -->
-    <div id="ui-panel" class="glass-panel absolute top-6 left-6 w-85 rounded-2xl p-6 z-10 transition-all duration-300 max-h-[92vh] overflow-y-auto">
-        <h1 class="text-2xl font-bold mb-1 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-teal-300 to-indigo-400">Solar System</h1>
-        <p class="text-xs text-gray-400 mb-4">General Relativity & High-Def Space</p>
+    <!-- FLOATING TOGGLE MENU BUTTON (Always visible on screen top-left) -->
+    <button id="btn-toggle-menu" class="glass-panel absolute top-5 left-5 z-20 px-3.5 py-2.5 rounded-xl text-white hover:bg-blue-600/40 active:scale-95 transition-all flex items-center gap-2 font-semibold text-xs border border-white/20 shadow-lg">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+        <span>Toggle Menu</span>
+    </button>
+
+    <!-- COMPACT UI PANEL -->
+    <div id="ui-panel" class="glass-panel absolute top-20 left-5 w-80 rounded-2xl p-5 z-10 transition-all duration-300 max-h-[85vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-3">
+            <div>
+                <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-300 to-pink-400">Cosmic Hierarchy</h1>
+                <p class="text-[11px] text-gray-400" id="tier-indicator">Current Scale: Solar System</p>
+            </div>
+            <button id="btn-close-menu" class="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
 
         <!-- ACTIVE TARGET INDICATOR -->
-        <div class="mb-5 p-3 rounded-xl bg-blue-950/50 border border-blue-500/30 flex items-center justify-between">
+        <div class="mb-4 p-2.5 rounded-xl bg-blue-950/40 border border-blue-500/30 flex items-center justify-between">
             <div>
-                <span class="text-[10px] uppercase tracking-wider text-blue-400 font-semibold block">Active View Focus</span>
-                <span id="active-target-name" class="text-base font-bold text-white">Full Solar System</span>
+                <span class="text-[9px] uppercase tracking-wider text-blue-400 font-semibold block">Active View Focus</span>
+                <span id="active-target-name" class="text-sm font-bold text-white">Full Solar System</span>
             </div>
-            <div class="w-3 h-3 rounded-full bg-blue-500 animate-pulse shadow-[0_0_10px_#3b82f6]"></div>
+            <div class="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_#3b82f6]"></div>
         </div>
 
         <!-- Controls Container -->
-        <div class="space-y-4 text-sm">
+        <div class="space-y-3.5 text-xs">
             
             <!-- Focus Target Dropdown -->
             <div>
-                <label class="block text-gray-300 mb-1 font-medium">Select Target</label>
-                <select id="planet-select" class="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white outline-none focus:border-blue-400 transition-colors cursor-pointer font-medium">
-                    <option value="System">Full Solar System</option>
-                    <option value="Sun">☀️ The Sun</option>
-                    <option value="Mercury">🪐 Mercury</option>
-                    <option value="Venus">🪐 Venus</option>
-                    <option value="Earth">🌍 Earth</option>
-                    <option value="Moon">  ↳ Earth's Moon</option>
-                    <option value="Mars">🪐 Mars</option>
-                    <option value="Jupiter">🪐 Jupiter</option>
-                    <option value="Io">  ↳ Jupiter's Io</option>
-                    <option value="Europa">  ↳ Jupiter's Europa</option>
-                    <option value="Saturn">🪐 Saturn</option>
-                    <option value="Titan">  ↳ Saturn's Titan</option>
-                    <option value="Uranus">🪐 Uranus</option>
-                    <option value="Neptune">🪐 Neptune</option>
+                <label class="block text-gray-300 mb-1 font-medium">Select Hierarchy & Target</label>
+                <select id="planet-select" class="w-full bg-white/10 border border-white/20 rounded-lg px-2.5 py-1.5 text-white outline-none focus:border-blue-400 transition-colors cursor-pointer font-medium">
+                    <optgroup label="✨ Multiverse Scale">
+                        <option value="Multiverse">🌌 Multiverse Domains</option>
+                    </optgroup>
+                    <optgroup label="🌀 Galaxy Scale">
+                        <option value="MilkyWay">🌀 Milky Way Galaxy</option>
+                    </optgroup>
+                    <optgroup label="🪐 Solar System Scale">
+                        <option value="System">Full Solar System</option>
+                        <option value="Sun">☀️ The Sun</option>
+                        <option value="Mercury">🪐 Mercury</option>
+                        <option value="Venus">🪐 Venus</option>
+                        <option value="Earth">🌍 Earth</option>
+                        <option value="Mars">🪐 Mars</option>
+                        <option value="Jupiter">🪐 Jupiter</option>
+                        <option value="Saturn">🪐 Saturn</option>
+                        <option value="Uranus">🪐 Uranus</option>
+                        <option value="Neptune">🪐 Neptune</option>
+                    </optgroup>
                 </select>
             </div>
 
-            <!-- UI ZOOM SLIDER & BUTTONS -->
+            <!-- ZOOM SLIDER & BUTTONS -->
             <div>
                 <div class="flex justify-between text-gray-300 mb-1">
-                    <label class="font-medium">Camera Distance</label>
+                    <label class="font-medium">Camera Distance / Scale</label>
                     <span id="zoom-display" class="font-mono text-blue-300">1200</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button id="btn-zoom-in" title="Zoom In" class="bg-white/10 hover:bg-blue-600 active:scale-95 text-white w-9 h-8 rounded-lg border border-white/20 font-bold text-base transition-all flex items-center justify-center">
-                        +
-                    </button>
-                    <input type="range" id="zoom-slider" min="10" max="3500" value="1200" class="w-full accent-blue-500 cursor-pointer h-2 bg-white/20 rounded-lg appearance-none">
-                    <button id="btn-zoom-out" title="Zoom Out" class="bg-white/10 hover:bg-blue-600 active:scale-95 text-white w-9 h-8 rounded-lg border border-white/20 font-bold text-base transition-all flex items-center justify-center">
-                        -
-                    </button>
+                    <button id="btn-zoom-in" title="Zoom In" class="bg-white/10 hover:bg-blue-600 active:scale-95 text-white w-8 h-7 rounded-lg border border-white/20 font-bold transition-all flex items-center justify-center">+</button>
+                    <input type="range" id="zoom-slider" min="2" max="35000" value="1200" class="w-full accent-blue-500 cursor-pointer h-1.5 bg-white/20 rounded-lg appearance-none">
+                    <button id="btn-zoom-out" title="Zoom Out" class="bg-white/10 hover:bg-blue-600 active:scale-95 text-white w-8 h-7 rounded-lg border border-white/20 font-bold transition-all flex items-center justify-center">-</button>
                 </div>
             </div>
 
             <!-- Play / Pause -->
             <div class="flex items-center justify-between">
                 <span class="text-gray-300 font-medium">Orbital Motion</span>
-                <button id="btn-play-pause" class="bg-blue-600 hover:bg-blue-500 active:scale-95 text-white px-4 py-1.5 rounded-md transition-all w-20 text-center font-semibold">
-                    Pause
-                </button>
+                <button id="btn-play-pause" class="bg-blue-600 hover:bg-blue-500 active:scale-95 text-white px-3 py-1 rounded-md transition-all w-16 text-center font-semibold">Pause</button>
             </div>
 
             <!-- Simulation Speed Slider -->
@@ -115,7 +137,7 @@
                 <span class="text-gray-300 font-medium">Show Orbit Lines</span>
                 <label class="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" id="toggle-orbits" class="sr-only peer" checked>
-                    <div class="w-11 h-6 bg-gray-700 rounded-full peer peer-checked:bg-blue-500 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                    <div class="w-9 h-5 bg-gray-700 rounded-full peer peer-checked:bg-blue-500 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
                 </label>
             </div>
 
@@ -123,19 +145,18 @@
             <div class="flex items-center justify-between pt-2 border-t border-white/10">
                 <div>
                     <span class="text-purple-300 font-semibold block">Space Fabric Grid</span>
-                    <span class="text-[10px] text-gray-400 block" id="fabric-poly-info">High-Poly HD</span>
+                    <span class="text-[9px] text-gray-400 block" id="fabric-poly-info">HD Polys: 120x120</span>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" id="toggle-fabric" class="sr-only peer" checked>
-                    <div class="w-11 h-6 bg-gray-700 rounded-full peer peer-checked:bg-purple-600 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                    <div class="w-9 h-5 bg-gray-700 rounded-full peer peer-checked:bg-purple-600 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
                 </label>
             </div>
         </div>
 
-        <div class="mt-5 pt-3 border-t border-white/10 text-xs text-gray-400 space-y-1.5">
-            <p>✨ <b>Enhanced Lighting:</b> Brighter space atmosphere</p>
-            <p>⚪ <b>Visible Orbits:</b> Clearer white orbit paths</p>
-            <p>🎯 <b>Click any celestial body:</b> Instant target lock</p>
+        <div class="mt-4 pt-2.5 border-t border-white/10 text-[10px] text-gray-400 space-y-1">
+            <p>✨ <b>Dynamic Galaxy Fill:</b> Fades out on zoom-in</p>
+            <p>🔘 <b>Toggle Menu:</b> Click button top-left to hide/show</p>
         </div>
     </div>
 
@@ -207,18 +228,6 @@
             return new THREE.CanvasTexture(canvas);
         }
 
-        function createMoonTexture() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 1024; canvas.height = 512;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#949494'; ctx.fillRect(0, 0, 1024, 512);
-            for(let i=0; i<3000; i++) {
-                ctx.fillStyle = Math.random() > 0.5 ? 'rgba(40,40,40,0.35)' : 'rgba(220,220,220,0.35)';
-                ctx.beginPath(); ctx.arc(Math.random()*1024, Math.random()*512, Math.random()*7 + 1, 0, Math.PI*2); ctx.fill();
-            }
-            return new THREE.CanvasTexture(canvas);
-        }
-
         function createMarsTexture() {
             const canvas = document.createElement('canvas');
             canvas.width = 1024; canvas.height = 512;
@@ -228,9 +237,6 @@
             for(let i=0; i<350; i++) {
                 ctx.beginPath(); ctx.arc(Math.random()*1024, Math.random()*512, Math.random()*50+10, 0, Math.PI*2); ctx.fill();
             }
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath(); ctx.ellipse(512, 15, 500, 22, 0, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.ellipse(512, 497, 500, 22, 0, 0, Math.PI*2); ctx.fill();
             return new THREE.CanvasTexture(canvas);
         }
 
@@ -270,7 +276,6 @@
             grad.addColorStop(0.5, 'rgba(180, 160, 120, 0.9)');
             grad.addColorStop(0.6, 'rgba(20, 20, 20, 0.3)');
             grad.addColorStop(0.7, 'rgba(210, 190, 150, 0.85)');
-            grad.addColorStop(0.95, 'rgba(150, 130, 90, 0.5)');
             grad.addColorStop(1.0, 'rgba(0, 0, 0, 0.0)');
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, 1024, 1);
@@ -294,54 +299,137 @@
             const grad = ctx.createLinearGradient(0, 0, 0, 512);
             grad.addColorStop(0, '#1f48c7'); grad.addColorStop(0.5, '#3563e3'); grad.addColorStop(1, '#1f48c7');
             ctx.fillStyle = grad; ctx.fillRect(0, 0, 1024, 512);
-            ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.fillRect(200, 200, 500, 8);
             return new THREE.CanvasTexture(canvas);
         }
 
         // ==========================================
-        // 2. SCENE & LIGHTING SETUP (BRIGHTENED)
+        // 2. SCENE & LIGHTING SETUP
         // ==========================================
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
 
-        const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 12000);
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.05, 50000);
         camera.position.set(0, 500, 1200);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.35; // Slight exposure boost for better visibility
+        renderer.toneMappingExposure = 1.35;
         container.appendChild(renderer.domElement);
 
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
         controls.rotateSpeed = 0.5;
-        controls.zoomSpeed = 0.3;
+        controls.zoomSpeed = 0.4;
         controls.minDistance = 2;
-        controls.maxDistance = 4500;
+        controls.maxDistance = 35000;
 
-        // Increased ambient light to reduce deep universal darkness
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
         scene.add(ambientLight);
 
         const hemiLight = new THREE.HemisphereLight(0xffffff, 0x222244, 0.6);
         scene.add(hemiLight);
 
-        const sunLight = new THREE.PointLight(0xffffff, 28000, 6000);
+        const sunLight = new THREE.PointLight(0xffffff, 28000, 8000);
         scene.add(sunLight);
 
         // ==========================================
-        // 3. STARFIELD (BRIGHTER STARS)
+        // 3. GALAXY WITH DENSE INTER-ARM STARS (SPRINKLES FILLED)
         // ==========================================
-        const starsCount = 12000;
+        const hierarchyGroup = new THREE.Group();
+        scene.add(hierarchyGroup);
+
+        const galaxyGroup = new THREE.Group();
+        galaxyGroup.position.set(0, 0, 0);
+        
+        const galaxyParticleCount = 28000; // Increased count to fill gaps between arms completely
+        const galaxyGeo = new THREE.BufferGeometry();
+        const galaxyPositions = new Float32Array(galaxyParticleCount * 3);
+        const galaxyColors = new Float32Array(galaxyParticleCount * 3);
+
+        for (let i = 0; i < galaxyParticleCount; i++) {
+            // Fill both arms and intermediate sprinkle areas uniformly
+            const radius = 1000 + Math.random() * 9500; 
+            const spinAngle = radius * 0.0006;
+            const branchAngle = ((i % 5) / 5) * Math.PI * 2;
+            const sprinkleSpread = (Math.random() - 0.5) * 1.5; // Fills the gaps
+            const currentAngle = branchAngle + spinAngle + sprinkleSpread;
+            
+            galaxyPositions[i * 3] = Math.cos(currentAngle) * radius;
+            galaxyPositions[i * 3 + 1] = (Math.random() - 0.5) * (350 + radius * 0.025);
+            galaxyPositions[i * 3 + 2] = Math.sin(currentAngle) * radius;
+
+            const mixedColor = new THREE.Color();
+            if (i % 5 === 0) {
+                mixedColor.setHex(0xffffff); // Bright sprinkle stars
+            } else if (radius < 2500) {
+                mixedColor.setHex(0xfffaed);
+            } else if (Math.random() > 0.4) {
+                mixedColor.setHex(0x60a5fa);
+            } else {
+                mixedColor.setHex(0xc084fc);
+            }
+
+            galaxyColors[i * 3] = mixedColor.r;
+            galaxyColors[i * 3 + 1] = mixedColor.g;
+            galaxyColors[i * 3 + 2] = mixedColor.b;
+        }
+
+        galaxyGeo.setAttribute('position', new THREE.BufferAttribute(galaxyPositions, 3));
+        galaxyGeo.setAttribute('color', new THREE.BufferAttribute(galaxyColors, 3));
+
+        const galaxyMat = new THREE.PointsMaterial({
+            size: 7,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.0, // Fades out on zoom in, fades in on zoom out
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+
+        const milkyWayMesh = new THREE.Points(galaxyGeo, galaxyMat);
+        milkyWayMesh.userData = { name: 'MilkyWay', scaleTier: 'Galaxy' };
+        galaxyGroup.add(milkyWayMesh);
+        hierarchyGroup.add(galaxyGroup);
+
+        // Multiverse Domains
+        const multiverseGroup = new THREE.Group();
+        const multiverseGeom = new THREE.SphereGeometry(700, 32, 32);
+        
+        for (let i = 0; i < 12; i++) {
+            const mMat = new THREE.MeshBasicMaterial({
+                color: new THREE.Color().setHSL(Math.random(), 0.85, 0.65),
+                wireframe: true,
+                transparent: true,
+                opacity: 0.0 
+            });
+            const mMesh = new THREE.Mesh(multiverseGeom, mMat);
+            const dist = 22000 + Math.random() * 10000;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.random() * Math.PI;
+            
+            mMesh.position.set(
+                dist * Math.sin(phi) * Math.cos(theta),
+                dist * Math.sin(phi) * Math.sin(theta),
+                dist * Math.cos(phi)
+            );
+            mMesh.userData = { name: 'Multiverse', scaleTier: 'Multiverse' };
+            multiverseGroup.add(mMesh);
+        }
+        hierarchyGroup.add(multiverseGroup);
+
+        // ==========================================
+        // 4. GENERAL STARFIELD
+        // ==========================================
+        const starsCount = 15000;
         const starsGeo = new THREE.BufferGeometry();
         const posArray = new Float32Array(starsCount * 3);
         const colorArray = new Float32Array(starsCount * 3);
 
         for (let i = 0; i < starsCount; i++) {
-            const r = 2500 + Math.random() * 4000;
+            const r = 8000 + Math.random() * 25000;
             const theta = 2 * Math.PI * Math.random();
             const phi = Math.acos(2 * Math.random() - 1);
 
@@ -351,8 +439,8 @@
 
             const color = new THREE.Color();
             const p = Math.random();
-            if (p > 0.75) color.setHex(0xcceeff);
-            else if (p > 0.5) color.setHex(0xffeedd);
+            if (p > 0.8) color.setHex(0x93c5fd);
+            else if (p > 0.6) color.setHex(0xfde047);
             else color.setHex(0xffffff);
 
             colorArray[i * 3] = color.r;
@@ -364,37 +452,37 @@
         starsGeo.setAttribute('color', new THREE.BufferAttribute(colorArray, 3));
 
         const starsMat = new THREE.PointsMaterial({
-            size: 2.8,
+            size: 3.0,
             sizeAttenuation: true,
             vertexColors: true,
             transparent: true,
-            opacity: 1.0
+            opacity: 0.95,
+            depthWrite: false
         });
 
         const starMesh = new THREE.Points(starsGeo, starsMat);
         scene.add(starMesh);
 
         // ==========================================
-        // 4. PLANETS & MOONS (WHITE/CLEAR ORBITS)
+        // 5. SOLAR SYSTEM OBJECTS & ORBITS
         // ==========================================
         const sphereGeo = new THREE.SphereGeometry(1, 64, 64);
         const interactableObjects = [];
         const orbitLines = [];
-        const moonTexture = createMoonTexture();
 
         const sunRadius = 25;
         const sunMass = 120;
         const sunGroup = new THREE.Group();
         const sunMat = new THREE.MeshBasicMaterial({ map: createSunTexture() });
         const sunMesh = new THREE.Mesh(new THREE.SphereGeometry(sunRadius, 64, 64), sunMat);
-        sunMesh.userData = { name: 'Sun', radius: sunRadius, mass: sunMass };
+        sunMesh.userData = { name: 'Sun', radius: sunRadius, mass: sunMass, scaleTier: 'SolarSystem' };
         sunGroup.add(sunMesh);
         interactableObjects.push(sunMesh);
 
-        const glowMat = new THREE.MeshBasicMaterial({ color: 0xff6600, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, side: THREE.BackSide });
+        const glowMat = new THREE.MeshBasicMaterial({ color: 0xff6600, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, side: THREE.BackSide, depthWrite: false });
         const sunGlow = new THREE.Mesh(new THREE.SphereGeometry(sunRadius + 4, 64, 64), glowMat);
         const sunGlowOuter = new THREE.Mesh(new THREE.SphereGeometry(sunRadius + 14, 64, 64), 
-            new THREE.MeshBasicMaterial({ color: 0xff2200, transparent: true, opacity: 0.15, blending: THREE.AdditiveBlending, side: THREE.BackSide })
+            new THREE.MeshBasicMaterial({ color: 0xff2200, transparent: true, opacity: 0.15, blending: THREE.AdditiveBlending, side: THREE.BackSide, depthWrite: false })
         );
         sunGroup.add(sunGlow); sunGroup.add(sunGlowOuter);
         scene.add(sunGroup);
@@ -402,38 +490,18 @@
         const planetsData = [
             { name: 'Mercury', radius: 1.2, distance: 75, mass: 15, speed: 0.035, rotSpeed: 0.01, texture: createMercuryTexture(), roughness: 0.6 },
             { name: 'Venus', radius: 2.2, distance: 110, mass: 22, speed: 0.022, rotSpeed: -0.004, texture: createVenusTexture(), roughness: 0.3 },
-            { 
-                name: 'Earth', radius: 2.5, distance: 150, mass: 25, speed: 0.015, rotSpeed: 0.02, texture: createEarthTexture(), roughness: 0.25,
-                moons: [{ name: 'Moon', radius: 0.6, distance: 6, speed: 0.04 }]
-            },
-            { 
-                name: 'Mars', radius: 1.6, distance: 210, mass: 18, speed: 0.011, rotSpeed: 0.018, texture: createMarsTexture(), roughness: 0.65,
-                moons: [
-                    { name: 'Phobos', radius: 0.3, distance: 3.5, speed: 0.07 },
-                    { name: 'Deimos', radius: 0.25, distance: 5.0, speed: 0.05 }
-                ]
-            },
-            { 
-                name: 'Jupiter', radius: 9.0, distance: 420, mass: 65, speed: 0.005, rotSpeed: 0.04, texture: createJupiterTexture(), roughness: 0.4,
-                moons: [
-                    { name: 'Io', radius: 0.7, distance: 14, speed: 0.05 },
-                    { name: 'Europa', radius: 0.6, distance: 17, speed: 0.04 },
-                    { name: 'Ganymede', radius: 0.9, distance: 21, speed: 0.03 },
-                    { name: 'Callisto', radius: 0.8, distance: 25, speed: 0.02 }
-                ]
-            },
+            { name: 'Earth', radius: 2.5, distance: 150, mass: 25, speed: 0.015, rotSpeed: 0.02, texture: createEarthTexture(), roughness: 0.25 },
+            { name: 'Mars', radius: 1.6, distance: 210, mass: 18, speed: 0.011, rotSpeed: 0.018, texture: createMarsTexture(), roughness: 0.65 },
+            { name: 'Jupiter', radius: 9.0, distance: 420, mass: 65, speed: 0.005, rotSpeed: 0.04, texture: createJupiterTexture(), roughness: 0.4 },
             { 
                 name: 'Saturn', radius: 7.5, distance: 650, mass: 50, speed: 0.003, rotSpeed: 0.038, texture: createSaturnTexture(), roughness: 0.35,
-                rings: { inner: 10, outer: 20, texture: createSaturnRingTexture() },
-                moons: [{ name: 'Titan', radius: 0.85, distance: 24, speed: 0.025 }]
+                rings: { inner: 10, outer: 20, texture: createSaturnRingTexture() }
             },
-            { name: 'Uranus', radius: 4.5, distance: 1000, mass: 35, speed: 0.0018, rotSpeed: -0.03, texture: createUranusTexture(), roughness: 0.3,
-              rings: { inner: 6, outer: 9, texture: createSaturnRingTexture() } },
+            { name: 'Uranus', radius: 4.5, distance: 1000, mass: 35, speed: 0.0018, rotSpeed: -0.03, texture: createUranusTexture(), roughness: 0.3, rings: { inner: 6, outer: 9, texture: createSaturnRingTexture() } },
             { name: 'Neptune', radius: 4.2, distance: 1350, mass: 35, speed: 0.001, rotSpeed: 0.032, texture: createNeptuneTexture(), roughness: 0.3 }
         ];
 
         const planets = [];
-        const allMoons = [];
 
         planetsData.forEach(data => {
             const points = [];
@@ -442,15 +510,14 @@
                 points.push(new THREE.Vector3(Math.cos(angle) * data.distance, 0, Math.sin(angle) * data.distance));
             }
             const pathGeo = new THREE.BufferGeometry().setFromPoints(points);
-            // Brighter White/Cyan clean orbit lines for high clarity
-            const orbitLine = new THREE.Line(pathGeo, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.45 }));
+            const orbitLine = new THREE.Line(pathGeo, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.25, depthWrite: false }));
             scene.add(orbitLine);
             orbitLines.push(orbitLine);
 
             const mat = new THREE.MeshStandardMaterial({ map: data.texture, roughness: data.roughness, metalness: 0.05 });
             const mesh = new THREE.Mesh(sphereGeo, mat);
             mesh.scale.setScalar(data.radius);
-            mesh.userData = { name: data.name, radius: data.radius, mass: data.mass };
+            mesh.userData = { name: data.name, radius: data.radius, mass: data.mass, scaleTier: 'SolarSystem' };
             
             const startAngle = Math.random() * Math.PI * 2;
             mesh.position.set(Math.cos(startAngle) * data.distance, 0, Math.sin(startAngle) * data.distance);
@@ -463,7 +530,7 @@
                     v3.fromBufferAttribute(pos, i);
                     ringGeo.attributes.uv.setXY(i, v3.length() < (data.rings.inner + data.rings.outer)/2 ? 0 : 1, 1);
                 }
-                const ringMat = new THREE.MeshStandardMaterial({ map: data.rings.texture, side: THREE.DoubleSide, transparent: true, opacity: 0.9, roughness: 0.25 });
+                const ringMat = new THREE.MeshStandardMaterial({ map: data.rings.texture, side: THREE.DoubleSide, transparent: true, opacity: 0.9, roughness: 0.25, depthWrite: false });
                 const ringMesh = new THREE.Mesh(ringGeo, ringMat);
                 ringMesh.rotation.x = Math.PI / 2 + 0.15;
                 mesh.add(ringMesh);
@@ -471,39 +538,11 @@
 
             scene.add(mesh);
             interactableObjects.push(mesh);
-
-            const moonInstances = [];
-            if (data.moons) {
-                data.moons.forEach(mdata => {
-                    const moonPoints = [];
-                    for (let j = 0; j <= 64; j++) {
-                        const mAngle = (j / 64) * Math.PI * 2;
-                        moonPoints.push(new THREE.Vector3(Math.cos(mAngle) * mdata.distance, 0, Math.sin(mAngle) * mdata.distance));
-                    }
-                    const moonPathGeo = new THREE.BufferGeometry().setFromPoints(moonPoints);
-                    const moonOrbitLine = new THREE.Line(moonPathGeo, new THREE.LineBasicMaterial({ color: 0xe2e8f0, transparent: true, opacity: 0.4 }));
-                    scene.add(moonOrbitLine);
-                    orbitLines.push(moonOrbitLine);
-
-                    const moonMat = new THREE.MeshStandardMaterial({ map: moonTexture, roughness: 0.8 });
-                    const moonMesh = new THREE.Mesh(sphereGeo, moonMat);
-                    moonMesh.scale.setScalar(mdata.radius);
-                    moonMesh.userData = { name: mdata.name, radius: mdata.radius, isMoon: true, planetName: data.name };
-
-                    scene.add(moonMesh);
-                    interactableObjects.push(moonMesh);
-
-                    const moonObj = { ...mdata, mesh: moonMesh, orbitLine: moonOrbitLine, angle: Math.random() * Math.PI * 2 };
-                    moonInstances.push(moonObj);
-                    allMoons.push(moonObj);
-                });
-            }
-
-            planets.push({ ...data, mesh: mesh, angle: startAngle, lastPos: mesh.position.clone(), moons: moonInstances });
+            planets.push({ ...data, mesh: mesh, angle: startAngle, lastPos: mesh.position.clone() });
         });
 
         // ==========================================
-        // 5. SPACE FABRIC
+        // 6. SPACE FABRIC
         // ==========================================
         const fabricSize = 3500;
         let currentFabricSegments = -1;
@@ -512,7 +551,8 @@
             color: 0xa855f7,
             wireframe: true,
             transparent: true,
-            opacity: 0.45
+            opacity: 0.35,
+            depthWrite: false
         });
 
         function rebuildFabricGeometry(segments) {
@@ -538,14 +578,6 @@
 
         function updateSpaceFabric() {
             if (!spaceFabricMesh || !spaceFabricMesh.visible) return;
-
-            const camDist = camera.position.distanceTo(controls.target);
-            let targetSegments = 90; 
-            if (camDist < 600) targetSegments = 140; 
-            if (camDist < 250) targetSegments = 180;
-
-            rebuildFabricGeometry(targetSegments);
-
             const fabricPositions = spaceFabricMesh.geometry.attributes.position;
             const posArray = fabricPositions.array;
             
@@ -570,12 +602,20 @@
         }
 
         // ==========================================
-        // 6. CONTROLS & UX
+        // 7. CONTROLS, TOGGLE MENU & ZOOM LOGIC
         // ==========================================
         let isPlaying = true;
         let timeScale = 1.0;
         let currentTarget = null; 
         let isAnimatingCamera = false;
+
+        const uiPanel = document.getElementById('ui-panel');
+        const btnToggleMenu = document.getElementById('btn-toggle-menu');
+        const btnCloseMenu = document.getElementById('btn-close-menu');
+
+        // Menu Toggle functionality
+        btnToggleMenu.addEventListener('click', () => uiPanel.classList.toggle('collapsed'));
+        btnCloseMenu.addEventListener('click', () => uiPanel.classList.add('collapsed'));
 
         const btnPlayPause = document.getElementById('btn-play-pause');
         const sliderSpeed = document.getElementById('speed-slider');
@@ -584,6 +624,7 @@
         const toggleFabric = document.getElementById('toggle-fabric');
         const planetSelect = document.getElementById('planet-select');
         const activeTargetName = document.getElementById('active-target-name');
+        const tierIndicator = document.getElementById('tier-indicator');
 
         const zoomSlider = document.getElementById('zoom-slider');
         const zoomDisplay = document.getElementById('zoom-display');
@@ -611,18 +652,34 @@
             const roundedDist = Math.round(distance);
             zoomSlider.value = roundedDist;
             zoomDisplay.innerText = roundedDist;
+
+            // Zoom-based Galaxy & Stars Visibility Logic (Disappears on Zoom-In, appears on Zoom-Out)
+            if (roundedDist > 12000) {
+                tierIndicator.innerText = "Current Scale: Multiverse Tier";
+                galaxyMat.opacity = 1.0;
+                multiverseGroup.children.forEach(m => m.material.opacity = Math.min(0.4, (roundedDist - 12000) / 10000));
+            } else if (roundedDist > 2500) {
+                tierIndicator.innerText = "Current Scale: Galaxy Tier (Milky Way)";
+                // Smooth fade-in when zooming out, fade-out when zooming into solar system
+                galaxyMat.opacity = Math.max(0.0, Math.min(0.95, (roundedDist - 2500) / 7500));
+                multiverseGroup.children.forEach(m => m.material.opacity = 0);
+            } else {
+                tierIndicator.innerText = "Current Scale: Solar System Tier";
+                galaxyMat.opacity = 0; // Completely disappears on close zoom-in inside solar system
+                multiverseGroup.children.forEach(m => m.material.opacity = 0);
+            }
         }
 
         zoomSlider.addEventListener('input', (e) => setZoomDistance(parseFloat(e.target.value)));
 
         btnZoomIn.addEventListener('click', () => {
             const currentDist = camera.position.distanceTo(controls.target);
-            setZoomDistance(Math.max(10, currentDist * 0.75));
+            setZoomDistance(Math.max(2, currentDist * 0.7));
         });
 
         btnZoomOut.addEventListener('click', () => {
             const currentDist = camera.position.distanceTo(controls.target);
-            setZoomDistance(Math.min(3500, currentDist * 1.3));
+            setZoomDistance(Math.min(35000, currentDist * 1.4));
         });
 
         controls.addEventListener('change', () => {
@@ -636,8 +693,8 @@
             isPlaying = !isPlaying;
             btnPlayPause.innerText = isPlaying ? "Pause" : "Play";
             btnPlayPause.className = isPlaying 
-                ? "bg-blue-600 hover:bg-blue-500 active:scale-95 text-white px-4 py-1.5 rounded-md transition-all w-20 text-center font-semibold"
-                : "bg-amber-600 hover:bg-amber-500 active:scale-95 text-white px-4 py-1.5 rounded-md transition-all w-20 text-center font-semibold";
+                ? "bg-blue-600 hover:bg-blue-500 active:scale-95 text-white px-3 py-1 rounded-md transition-all w-16 text-center font-semibold"
+                : "bg-amber-600 hover:bg-amber-500 active:scale-95 text-white px-3 py-1 rounded-md transition-all w-16 text-center font-semibold";
         });
 
         sliderSpeed.addEventListener('input', (e) => {
@@ -659,7 +716,7 @@
         const mouse = new THREE.Vector2();
 
         window.addEventListener('click', (event) => {
-            if (event.target.closest('#ui-panel')) return;
+            if (event.target.closest('#ui-panel') || event.target.closest('#btn-toggle-menu')) return;
 
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -670,7 +727,7 @@
             if (intersects.length > 0) {
                 const name = intersects[0].object.userData.name;
                 planetSelect.value = name;
-                focusOnTarget(name);
+-               focusOnTarget(name);
             }
         });
 
@@ -687,24 +744,32 @@
             let endPos, targetLookAt;
             let displayName = targetName;
 
-            if (targetName === 'System') {
+            if (targetName === 'Multiverse') {
+                endPos = new THREE.Vector3(0, 8000, 26000);
+                targetLookAt = new THREE.Vector3(0, 0, 0);
+                displayName = "Multiverse Domains";
+                currentTarget = null;
+            } else if (targetName === 'MilkyWay') {
+                endPos = new THREE.Vector3(0, 2500, 8000);
+                targetLookAt = new THREE.Vector3(0, 0, 0);
+                displayName = "Milky Way Galaxy";
+                currentTarget = null;
+            } else if (targetName === 'System') {
                 endPos = new THREE.Vector3(0, 500, 1200);
                 targetLookAt = new THREE.Vector3(0, 0, 0);
                 displayName = "Full Solar System";
                 currentTarget = null;
             } else if (targetName === 'Sun') {
-                endPos = new THREE.Vector3(0, 45, 110);
+                endPos = new THREE.Vector3(0, 35, 75);
                 targetLookAt = new THREE.Vector3(0, 0, 0);
                 displayName = "The Sun";
                 currentTarget = 'Sun';
             } else {
                 let obj = planets.find(p => p.name === targetName);
-                if (!obj) obj = allMoons.find(m => m.name === targetName);
-
                 if (!obj) return;
                 
                 const targetRadius = obj.radius;
-                const offset = new THREE.Vector3(targetRadius * 4.5, targetRadius * 2.2, targetRadius * 5.5);
+                const offset = new THREE.Vector3(targetRadius * 3.5, targetRadius * 1.5, targetRadius * 4.0);
                 
                 endPos = obj.mesh.position.clone().add(offset);
                 targetLookAt = obj.mesh.position.clone();
@@ -718,9 +783,7 @@
                 x: targetLookAt.x, y: targetLookAt.y, z: targetLookAt.z,
                 duration: 1.5,
                 ease: "power2.inOut",
-                onComplete: () => {
-                    isAnimatingCamera = false;
-                }
+                onComplete: () => { isAnimatingCamera = false; }
             });
 
             gsap.to(camera.position, {
@@ -735,10 +798,14 @@
         }
 
         // ==========================================
-        // 7. ANIMATION LOOP
+        // 8. ANIMATION LOOP
         // ==========================================
         function animate() {
             requestAnimationFrame(animate);
+
+            starMesh.rotation.y += 0.00015 * timeScale;
+            milkyWayMesh.rotation.y += 0.0004 * timeScale;
+            multiverseGroup.rotation.y += 0.00008 * timeScale;
 
             sunGroup.rotation.y += 0.002 * timeScale;
             sunGlowOuter.rotation.y -= 0.003 * timeScale;
@@ -752,40 +819,15 @@
                         Math.sin(p.angle) * p.distance
                     );
                 }
-                
                 p.mesh.rotation.y += p.rotSpeed * timeScale;
-
-                p.moons.forEach(m => {
-                    if (isPlaying) {
-                        m.angle += m.speed * timeScale;
-                    }
-                    
-                    m.mesh.position.set(
-                        p.mesh.position.x + Math.cos(m.angle) * m.distance,
-                        p.mesh.position.y,
-                        p.mesh.position.z + Math.sin(m.angle) * m.distance
-                    );
-
-                    m.orbitLine.position.copy(p.mesh.position);
-                    m.mesh.rotation.y += 0.01 * timeScale;
-                });
 
                 if (currentTarget === p.name && !isAnimatingCamera) {
                     const delta = p.mesh.position.clone().sub(p.lastPos);
                     camera.position.add(delta);
                     controls.target.copy(p.mesh.position);
                 }
-
                 p.lastPos.copy(p.mesh.position);
             });
-
-            if (currentTarget && !isAnimatingCamera) {
-                const activeMoon = allMoons.find(m => m.name === currentTarget);
-                if (activeMoon) {
-                    controls.target.count = activeMoon.mesh.position; // safety fallback
-                    controls.target.copy(activeMoon.mesh.position);
-                }
-            }
 
             updateSpaceFabric();
 
