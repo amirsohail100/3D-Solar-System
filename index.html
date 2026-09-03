@@ -5,10 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Interactive Solar System</title>
     
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- GSAP for Smooth Camera Animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 
+    <!-- Three.js Import Map -->
     <script type="importmap">
         {
             "imports": {
@@ -22,8 +25,9 @@
         body { margin: 0; padding: 0; overflow: hidden; background-color: #020208; color: white; user-select: none; font-family: sans-serif; }
         canvas { display: block; width: 100vw; height: 100vh; }
         
+        /* Glassmorphism Styling */
         .glass-panel {
-            background: rgba(15, 23, 42, 0.7);
+            background: rgba(15, 23, 42, 0.75);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -35,11 +39,15 @@
 </head>
 <body>
 
+    <!-- UI Panel -->
     <div id="ui-panel" class="glass-panel absolute top-6 left-6 w-80 rounded-2xl p-6 z-10 transition-all duration-300">
         <h1 class="text-2xl font-bold mb-1 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-teal-300 to-emerald-400">Solar System</h1>
         <p class="text-xs text-gray-400 mb-6">3D Interactive WebGL Simulation</p>
 
+        <!-- Controls Container -->
         <div class="space-y-5 text-sm">
+            
+            <!-- Focus Target Dropdown -->
             <div>
                 <label class="block text-gray-300 mb-1 font-medium">Focus Target</label>
                 <select id="planet-select" class="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white outline-none focus:border-blue-400 transition-colors cursor-pointer">
@@ -56,6 +64,24 @@
                 </select>
             </div>
 
+            <!-- UI ZOOM SLIDER & BUTTONS -->
+            <div>
+                <div class="flex justify-between text-gray-300 mb-1">
+                    <label class="font-medium">Camera Zoom</label>
+                    <span id="zoom-display" class="font-mono text-blue-300">350</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="btn-zoom-in" title="Zoom In" class="bg-white/10 hover:bg-blue-600 active:scale-95 text-white w-9 h-8 rounded-lg border border-white/20 font-bold text-base transition-all flex items-center justify-center">
+                        +
+                    </button>
+                    <input type="range" id="zoom-slider" min="10" max="800" value="350" class="w-full accent-blue-500 cursor-pointer h-2 bg-white/20 rounded-lg appearance-none">
+                    <button id="btn-zoom-out" title="Zoom Out" class="bg-white/10 hover:bg-blue-600 active:scale-95 text-white w-9 h-8 rounded-lg border border-white/20 font-bold text-base transition-all flex items-center justify-center">
+                        -
+                    </button>
+                </div>
+            </div>
+
+            <!-- Play / Pause -->
             <div class="flex items-center justify-between">
                 <span class="text-gray-300 font-medium">Orbital Motion</span>
                 <button id="btn-play-pause" class="bg-blue-600 hover:bg-blue-500 active:scale-95 text-white px-4 py-1.5 rounded-md transition-all w-20 text-center font-semibold">
@@ -63,6 +89,7 @@
                 </button>
             </div>
 
+            <!-- Simulation Speed Slider -->
             <div>
                 <div class="flex justify-between text-gray-300 mb-1">
                     <label class="font-medium">Simulation Speed</label>
@@ -71,6 +98,7 @@
                 <input type="range" id="speed-slider" min="0" max="5" step="0.1" value="1" class="w-full accent-blue-500 cursor-pointer">
             </div>
 
+            <!-- Show/Hide Orbit Lines -->
             <div class="flex items-center justify-between">
                 <span class="text-gray-300 font-medium">Show Orbit Lines</span>
                 <label class="relative inline-flex items-center cursor-pointer">
@@ -81,13 +109,14 @@
         </div>
 
         <div class="mt-6 pt-4 border-t border-white/10 text-xs text-gray-400 space-y-1.5">
-            <p>🖱️ <b>Left-Click + Drag:</b> Rotate Camera</p>
+            <p>🎛️ <b>UI Slider / (+ -):</b> Controlled Camera Zoom</p>
+            <p>🖱️ <b>Left-Click + Drag:</b> Rotate Orbit</p>
             <p>🖱️ <b>Right-Click + Drag:</b> Pan View</p>
-            <p>🔍 <b>Scroll Wheel:</b> Ultra-Smooth Zoom</p>
             <p>🎯 <b>Click Planet:</b> Auto Focus Target</p>
         </div>
     </div>
 
+    <!-- 3D Canvas Container -->
     <div id="canvas-container"></div>
 
     <script type="module">
@@ -95,9 +124,8 @@
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
         // ==========================================
-        // 1. TEXTURE GENERATORS
+        // 1. PROCEDURAL TEXTURES
         // ==========================================
-        
         function createSunTexture() {
             const canvas = document.createElement('canvas');
             canvas.width = 1024; canvas.height = 512;
@@ -255,17 +283,14 @@
         renderer.toneMappingExposure = 1.2;
         container.appendChild(renderer.domElement);
 
-        // OrbitControls with Controlled Zoom Speed
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
         controls.rotateSpeed = 0.5;
-        controls.zoomSpeed = 0.15; // Smooth low sensitivity scroll
-        controls.panSpeed = 0.5;
+        controls.zoomSpeed = 0.3;
         controls.minDistance = 10;
         controls.maxDistance = 1000;
 
-        // Ambient & Fill Lights
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
         scene.add(ambientLight);
 
@@ -276,7 +301,7 @@
         scene.add(sunLight);
 
         // ==========================================
-        // 3. RELIABLE BRIGHT STARFIELD
+        // 3. BRIGHT & RELIABLE STARFIELD
         // ==========================================
         const starsCount = 5000;
         const starsGeo = new THREE.BufferGeometry();
@@ -318,7 +343,7 @@
         scene.add(starMesh);
 
         // ==========================================
-        // 4. CELESTIAL BODIES
+        // 4. PLANETS & SUN
         // ==========================================
         const sphereGeo = new THREE.SphereGeometry(1, 64, 64);
         const interactableObjects = [];
@@ -413,7 +438,7 @@
         });
 
         // ==========================================
-        // 5. INTERACTION & ZOOM CONFLICT FIX
+        // 5. UI CONTROLS & ZOOM SLIDER LOGIC
         // ==========================================
         let isPlaying = true;
         let timeScale = 1.0;
@@ -426,6 +451,12 @@
         const toggleOrbits = document.getElementById('toggle-orbits');
         const planetSelect = document.getElementById('planet-select');
 
+        // Zoom UI Elements
+        const zoomSlider = document.getElementById('zoom-slider');
+        const zoomDisplay = document.getElementById('zoom-display');
+        const btnZoomIn = document.getElementById('btn-zoom-in');
+        const btnZoomOut = document.getElementById('btn-zoom-out');
+
         function stopCameraTweens() {
             gsap.killTweensOf(camera.position);
             gsap.killTweensOf(controls.target);
@@ -433,8 +464,49 @@
             currentTarget = null;
         }
 
-        // Wheel Listener to instantly stop tracking conflicts
-        window.addEventListener('wheel', () => stopCameraTweens(), { passive: true });
+        // Programmatically update camera position based on distance
+        function setZoomDistance(newDistance) {
+            stopCameraTweens();
+            
+            const direction = new THREE.Vector3().subVectors(camera.position, controls.target);
+            if (direction.lengthSq() === 0) direction.set(0, 0, 1);
+            direction.normalize();
+
+            camera.position.copy(controls.target).addScaledVector(direction, newDistance);
+            controls.update();
+            updateZoomUI(newDistance);
+        }
+
+        function updateZoomUI(distance) {
+            const roundedDist = Math.round(distance);
+            zoomSlider.value = roundedDist;
+            zoomDisplay.innerText = roundedDist;
+        }
+
+        // Event Listener for Zoom Slider
+        zoomSlider.addEventListener('input', (e) => {
+            setZoomDistance(parseFloat(e.target.value));
+        });
+
+        // Event Listeners for + / - Zoom Buttons
+        btnZoomIn.addEventListener('click', () => {
+            const currentDist = camera.position.distanceTo(controls.target);
+            const newDist = Math.max(10, currentDist * 0.75);
+            setZoomDistance(newDist);
+        });
+
+        btnZoomOut.addEventListener('click', () => {
+            const currentDist = camera.position.distanceTo(controls.target);
+            const newDist = Math.min(800, currentDist * 1.3);
+            setZoomDistance(newDist);
+        });
+
+        // Sync Zoom Slider with Mouse Scroll & Orbit Controls Update
+        controls.addEventListener('change', () => {
+            const currentDist = camera.position.distanceTo(controls.target);
+            updateZoomUI(currentDist);
+        });
+
         controls.addEventListener('start', () => stopCameraTweens());
 
         btnPlayPause.addEventListener('click', () => {
@@ -519,7 +591,11 @@
             gsap.to(camera.position, {
                 x: endPos.x, y: endPos.y, z: endPos.z,
                 duration: 1.4,
-                ease: "power2.inOut"
+                ease: "power2.inOut",
+                onUpdate: () => {
+                    const dist = camera.position.distanceTo(controls.target);
+                    updateZoomUI(dist);
+                }
             });
         }
 
