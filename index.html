@@ -147,8 +147,8 @@
         </div>
 
         <div class="mt-4 pt-2.5 border-t border-white/10 text-[10px] text-gray-400 space-y-1">
-            <p>🌌 <b>Off-Center System:</b> Placed inside Milky Way arm</p>
-            <p>✨ <b>Zoom Stars:</b> Multiverse/Deep stars fade on zoom-in</p>
+            <p>🌌 <b>Galactic Core:</b> Filled center with massive bright stars</p>
+            <p>✨ <b>Enhanced Look:</b> Scattered giant stars across spiral arms</p>
         </div>
     </div>
 
@@ -263,7 +263,6 @@
         const scene = new THREE.Scene();
 
         const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.05, 50000);
-        // Default initial camera looking at the off-center solar system
         const solarSystemOffset = new THREE.Vector3(3200, 0, 1500); // Off-center position in Milky Way
         camera.position.set(solarSystemOffset.x, solarSystemOffset.y + 500, solarSystemOffset.z + 1200);
 
@@ -293,11 +292,12 @@
         const hierarchyGroup = new THREE.Group();
         scene.add(hierarchyGroup);
 
-        // GALAXY WITH SPRINKLES
+        // GALAXY WITH CORE & MASSIVE STARS
         const galaxyGroup = new THREE.Group();
         galaxyGroup.position.set(0, 0, 0);
         
-        const galaxyParticleCount = 28000;
+        // 1. Regular Galaxy Arms Particles
+        const galaxyParticleCount = 26000;
         const galaxyGeo = new THREE.BufferGeometry();
         const galaxyPositions = new Float32Array(galaxyParticleCount * 3);
         const galaxyColors = new Float32Array(galaxyParticleCount * 3);
@@ -310,12 +310,11 @@
             const currentAngle = branchAngle + spinAngle + sprinkleSpread;
             
             galaxyPositions[i * 3] = Math.cos(currentAngle) * radius;
-            galaxyPositions[i * 3 + 1] = (Math.random() - 0.5) * (350 + radius * 0.025);
+            galaxyPositions[i * 3 + 1] = (Math.random() - 0.5) * (300 + radius * 0.02);
             galaxyPositions[i * 3 + 2] = Math.sin(currentAngle) * radius;
 
             const mixedColor = new THREE.Color();
             if (i % 5 === 0) mixedColor.setHex(0xffffff);
-            else if (radius < 2500) mixedColor.setHex(0xfffaed);
             else if (Math.random() > 0.4) mixedColor.setHex(0x60a5fa);
             else mixedColor.setHex(0xc084fc);
 
@@ -323,12 +322,63 @@
             galaxyColors[i * 3 + 1] = mixedColor.g;
             galaxyColors[i * 3 + 2] = mixedColor.b;
         }
-
         galaxyGeo.setAttribute('position', new THREE.BufferAttribute(galaxyPositions, 3));
         galaxyGeo.setAttribute('color', new THREE.BufferAttribute(galaxyColors, 3));
 
         const galaxyMat = new THREE.PointsMaterial({
-            size: 7,
+            size: 6.5,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.0,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+        const milkyWayMesh = new THREE.Points(galaxyGeo, galaxyMat);
+        milkyWayMesh.userData = { name: 'MilkyWay', scaleTier: 'Galaxy' };
+        galaxyGroup.add(milkyWayMesh);
+
+        // 2. MASSIVE STARS & GALACTIC CORE BULGE (Fills the center gap & enhances look)
+        const massiveStarsCount = 4000;
+        const massiveGeo = new THREE.BufferGeometry();
+        const massivePos = new Float32Array(massiveStarsCount * 3);
+        const massiveColors = new Float32Array(massiveStarsCount * 3);
+
+        for (let i = 0; i < massiveStarsCount; i++) {
+            let radius, currentAngle, yPos;
+            if (i < 1800) {
+                // Dense Galactic Core / Bulge at the center
+                radius = Math.random() * 1600;
+                currentAngle = Math.random() * Math.PI * 2;
+                yPos = (Math.random() - 0.5) * 320; // Thick core bulb
+            } else {
+                // Randomly scattered Massive Stars across the arms
+                radius = 1200 + Math.random() * 9000;
+                const spinAngle = radius * 0.0006;
+                const branchAngle = ((i % 4) / 4) * Math.PI * 2;
+                currentAngle = branchAngle + spinAngle + (Math.random() - 0.5) * 0.5;
+                yPos = (Math.random() - 0.5) * 100;
+            }
+
+            massivePos[i * 3] = Math.cos(currentAngle) * radius;
+            massivePos[i * 3 + 1] = yPos;
+            massivePos[i * 3 + 2] = Math.sin(currentAngle) * radius;
+
+            const color = new THREE.Color();
+            if (radius < 1600) {
+                color.setHex(0xffea9f); // Warm yellowish-white core giants
+            } else {
+                color.setHex(Math.random() > 0.4 ? 0x93c5fd : 0xffffff); // Bright blue-white massive stars
+            }
+            massiveColors[i * 3] = color.r;
+            massiveColors[i * 3 + 1] = color.g;
+            massiveColors[i * 3 + 2] = color.b;
+        }
+
+        massiveGeo.setAttribute('position', new THREE.BufferAttribute(massivePos, 3));
+        massiveGeo.setAttribute('color', new THREE.BufferAttribute(massiveColors, 3));
+
+        const massiveMat = new THREE.PointsMaterial({
+            size: 11, // Larger size for massive stars
             vertexColors: true,
             transparent: true,
             opacity: 0.0,
@@ -336,9 +386,10 @@
             depthWrite: false
         });
 
-        const milkyWayMesh = new THREE.Points(galaxyGeo, galaxyMat);
-        milkyWayMesh.userData = { name: 'MilkyWay', scaleTier: 'Galaxy' };
-        galaxyGroup.add(milkyWayMesh);
+        const massiveStarsMesh = new THREE.Points(massiveGeo, massiveMat);
+        massiveStarsMesh.userData = { name: 'MilkyWay', scaleTier: 'Galaxy' };
+        galaxyGroup.add(massiveStarsMesh);
+
         hierarchyGroup.add(galaxyGroup);
 
         // MULTIVERSE DOMAINS
@@ -399,7 +450,7 @@
         const starMesh = new THREE.Points(starsGeo, starsMat);
         scene.add(starMesh);
 
-        // EXTRA ZOOM-OUT STARS (Appears on extreme zoom-out, disappears on zoom-in)
+        // EXTRA ZOOM-OUT STARS
         const zoomOutStarsCount = 10000;
         const zoomOutGeo = new THREE.BufferGeometry();
         const zoPos = new Float32Array(zoomOutStarsCount * 3);
@@ -553,16 +604,20 @@
             if (roundedDist > 12000) {
                 tierIndicator.innerText = "Current Scale: Multiverse Tier";
                 galaxyMat.opacity = 1.0;
+                massiveMat.opacity = 1.0;
                 zoomOutStarMesh.material.opacity = Math.min(0.8, (roundedDist - 12000) / 10000);
                 multiverseGroup.children.forEach(m => m.material.opacity = Math.min(0.4, (roundedDist - 12000) / 10000));
             } else if (roundedDist > 2500) {
                 tierIndicator.innerText = "Current Scale: Galaxy Tier (Milky Way)";
-                galaxyMat.opacity = Math.max(0.0, Math.min(0.95, (roundedDist - 2500) / 7500));
-                zoomOutStarMesh.material.opacity = 0; // Disappears on zoom in
+                const op = Math.max(0.0, Math.min(0.95, (roundedDist - 2500) / 7500));
+                galaxyMat.opacity = op;
+                massiveMat.opacity = op;
+                zoomOutStarMesh.material.opacity = 0;
                 multiverseGroup.children.forEach(m => m.material.opacity = 0);
             } else {
                 tierIndicator.innerText = "Current Scale: Solar System Tier (Off-Center)";
                 galaxyMat.opacity = 0;
+                massiveMat.opacity = 0;
                 zoomOutStarMesh.material.opacity = 0;
                 multiverseGroup.children.forEach(m => m.material.opacity = 0);
             }
@@ -644,6 +699,7 @@
             starMesh.rotation.y += 0.00015 * timeScale;
             zoomOutStarMesh.rotation.y += 0.0001 * timeScale;
             milkyWayMesh.rotation.y += 0.0004 * timeScale;
+            massiveStarsMesh.rotation.y += 0.0004 * timeScale; // Rotates core & massive stars with galaxy
             multiverseGroup.rotation.y += 0.00008 * timeScale;
 
             sunMesh.rotation.y += 0.002 * timeScale;
