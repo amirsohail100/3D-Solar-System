@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Interactive Solar System</title>
+    <title>3D Interactive Solar System with Moons</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -25,7 +25,6 @@
         body { margin: 0; padding: 0; overflow: hidden; background-color: #020208; color: white; user-select: none; font-family: sans-serif; }
         canvas { display: block; width: 100vw; height: 100vh; }
         
-        /* Glassmorphism Styling */
         .glass-panel {
             background: rgba(15, 23, 42, 0.75);
             backdrop-filter: blur(16px);
@@ -42,7 +41,7 @@
     <!-- UI Panel -->
     <div id="ui-panel" class="glass-panel absolute top-6 left-6 w-80 rounded-2xl p-6 z-10 transition-all duration-300">
         <h1 class="text-2xl font-bold mb-1 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-teal-300 to-emerald-400">Solar System</h1>
-        <p class="text-xs text-gray-400 mb-6">3D Interactive WebGL Simulation</p>
+        <p class="text-xs text-gray-400 mb-6">Planets & Moons Simulation</p>
 
         <!-- Controls Container -->
         <div class="space-y-5 text-sm">
@@ -56,9 +55,13 @@
                     <option value="Mercury">Mercury</option>
                     <option value="Venus">Venus</option>
                     <option value="Earth">Earth</option>
+                    <option value="Moon">↳ Earth's Moon</option>
                     <option value="Mars">Mars</option>
                     <option value="Jupiter">Jupiter</option>
+                    <option value="Io">↳ Jupiter's Io</option>
+                    <option value="Europa">↳ Jupiter's Europa</option>
                     <option value="Saturn">Saturn</option>
+                    <option value="Titan">↳ Saturn's Titan</option>
                     <option value="Uranus">Uranus</option>
                     <option value="Neptune">Neptune</option>
                 </select>
@@ -74,7 +77,7 @@
                     <button id="btn-zoom-in" title="Zoom In" class="bg-white/10 hover:bg-blue-600 active:scale-95 text-white w-9 h-8 rounded-lg border border-white/20 font-bold text-base transition-all flex items-center justify-center">
                         +
                     </button>
-                    <input type="range" id="zoom-slider" min="10" max="800" value="350" class="w-full accent-blue-500 cursor-pointer h-2 bg-white/20 rounded-lg appearance-none">
+                    <input type="range" id="zoom-slider" min="5" max="800" value="350" class="w-full accent-blue-500 cursor-pointer h-2 bg-white/20 rounded-lg appearance-none">
                     <button id="btn-zoom-out" title="Zoom Out" class="bg-white/10 hover:bg-blue-600 active:scale-95 text-white w-9 h-8 rounded-lg border border-white/20 font-bold text-base transition-all flex items-center justify-center">
                         -
                     </button>
@@ -109,10 +112,9 @@
         </div>
 
         <div class="mt-6 pt-4 border-t border-white/10 text-xs text-gray-400 space-y-1.5">
-            <p>🎛️ <b>UI Slider / (+ -):</b> Controlled Camera Zoom</p>
-            <p>🖱️ <b>Left-Click + Drag:</b> Rotate Orbit</p>
-            <p>🖱️ <b>Right-Click + Drag:</b> Pan View</p>
-            <p>🎯 <b>Click Planet:</b> Auto Focus Target</p>
+            <p>🌕 <b>Sub-Moons:</b> Orbiting around host planets</p>
+            <p>🎛️ <b>UI Zoom Slider / (+ -):</b> Precise Zoom</p>
+            <p>🎯 <b>Click Planet / Moon:</b> Auto Focus Target</p>
         </div>
     </div>
 
@@ -135,9 +137,7 @@
             ctx.fillStyle = grad; ctx.fillRect(0,0,1024,512);
             for(let i=0; i<3000; i++) {
                 ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,220,0.3)' : 'rgba(200,30,0,0.25)';
-                ctx.beginPath();
-                ctx.arc(Math.random()*1024, Math.random()*512, Math.random()*12 + 2, 0, Math.PI*2);
-                ctx.fill();
+                ctx.beginPath(); ctx.arc(Math.random()*1024, Math.random()*512, Math.random()*12 + 2, 0, Math.PI*2); ctx.fill();
             }
             return new THREE.CanvasTexture(canvas);
         }
@@ -163,9 +163,7 @@
             ctx.fillStyle = grad; ctx.fillRect(0,0,1024,512);
             ctx.fillStyle = 'rgba(255, 245, 220, 0.2)';
             for(let i=0; i<50; i++) {
-                ctx.beginPath();
-                ctx.ellipse(Math.random()*1024, Math.random()*512, Math.random()*300+100, Math.random()*20+5, Math.random()*0.2, 0, Math.PI*2);
-                ctx.fill();
+                ctx.beginPath(); ctx.ellipse(Math.random()*1024, Math.random()*512, Math.random()*300+100, Math.random()*20+5, Math.random()*0.2, 0, Math.PI*2); ctx.fill();
             }
             return new THREE.CanvasTexture(canvas);
         }
@@ -185,6 +183,18 @@
             }
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, 1024, 30); ctx.fillRect(0, 482, 1024, 30);
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        function createMoonTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512; canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#a3a3a3'; ctx.fillRect(0,0,512,256);
+            for(let i=0; i<1000; i++) {
+                ctx.fillStyle = Math.random() > 0.5 ? 'rgba(50,50,50,0.3)' : 'rgba(230,230,230,0.3)';
+                ctx.beginPath(); ctx.arc(Math.random()*512, Math.random()*256, Math.random()*6 + 1, 0, Math.PI*2); ctx.fill();
+            }
             return new THREE.CanvasTexture(canvas);
         }
 
@@ -288,7 +298,7 @@
         controls.dampingFactor = 0.05;
         controls.rotateSpeed = 0.5;
         controls.zoomSpeed = 0.3;
-        controls.minDistance = 10;
+        controls.minDistance = 2;
         controls.maxDistance = 1000;
 
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
@@ -301,7 +311,7 @@
         scene.add(sunLight);
 
         // ==========================================
-        // 3. BRIGHT & RELIABLE STARFIELD
+        // 3. STARFIELD
         // ==========================================
         const starsCount = 5000;
         const starsGeo = new THREE.BufferGeometry();
@@ -343,11 +353,12 @@
         scene.add(starMesh);
 
         // ==========================================
-        // 4. PLANETS & SUN
+        // 4. PLANETS & MOONS DATA
         // ==========================================
         const sphereGeo = new THREE.SphereGeometry(1, 64, 64);
         const interactableObjects = [];
         const orbitLines = [];
+        const moonTexture = createMoonTexture();
 
         // Sun
         const sunRadius = 14;
@@ -366,33 +377,60 @@
         sunGroup.add(sunGlow); sunGroup.add(sunGlowOuter);
         scene.add(sunGroup);
 
-        // Planets
+        // Planets & Moons Specification
         const planetsData = [
             { name: 'Mercury', radius: 1.2, distance: 28, speed: 0.035, rotSpeed: 0.01, texture: createMercuryTexture(), roughness: 0.7 },
             { name: 'Venus', radius: 2.2, distance: 42, speed: 0.015, rotSpeed: -0.004, texture: createVenusTexture(), roughness: 0.4 },
-            { name: 'Earth', radius: 2.5, distance: 60, speed: 0.01, rotSpeed: 0.02, texture: createEarthTexture(), roughness: 0.3 },
-            { name: 'Mars', radius: 1.6, distance: 78, speed: 0.008, rotSpeed: 0.018, texture: createMarsTexture(), roughness: 0.7 },
-            { name: 'Jupiter', radius: 8.5, distance: 115, speed: 0.002, rotSpeed: 0.04, texture: createJupiterTexture(), roughness: 0.5 },
-            { name: 'Saturn', radius: 7, distance: 160, speed: 0.0009, rotSpeed: 0.038, texture: createSaturnTexture(), roughness: 0.4,
-              rings: { inner: 9, outer: 17, texture: createSaturnRingTexture() } },
+            { 
+                name: 'Earth', radius: 2.5, distance: 60, speed: 0.01, rotSpeed: 0.02, texture: createEarthTexture(), roughness: 0.3,
+                moons: [
+                    { name: 'Moon', radius: 0.6, distance: 5.5, speed: 0.04 }
+                ]
+            },
+            { 
+                name: 'Mars', radius: 1.6, distance: 78, speed: 0.008, rotSpeed: 0.018, texture: createMarsTexture(), roughness: 0.7,
+                moons: [
+                    { name: 'Phobos', radius: 0.3, distance: 3.2, speed: 0.07 },
+                    { name: 'Deimos', radius: 0.25, distance: 4.5, speed: 0.05 }
+                ]
+            },
+            { 
+                name: 'Jupiter', radius: 8.5, distance: 115, speed: 0.002, rotSpeed: 0.04, texture: createJupiterTexture(), roughness: 0.5,
+                moons: [
+                    { name: 'Io', radius: 0.7, distance: 13, speed: 0.05 },
+                    { name: 'Europa', radius: 0.6, distance: 16, speed: 0.04 },
+                    { name: 'Ganymede', radius: 0.9, distance: 19.5, speed: 0.03 },
+                    { name: 'Callisto', radius: 0.8, distance: 23.5, speed: 0.02 }
+                ]
+            },
+            { 
+                name: 'Saturn', radius: 7, distance: 160, speed: 0.0009, rotSpeed: 0.038, texture: createSaturnTexture(), roughness: 0.4,
+                rings: { inner: 9, outer: 17, texture: createSaturnRingTexture() },
+                moons: [
+                    { name: 'Titan', radius: 0.85, distance: 22, speed: 0.025 }
+                ]
+            },
             { name: 'Uranus', radius: 4, distance: 210, speed: 0.0004, rotSpeed: -0.03, texture: createUranusTexture(), roughness: 0.3,
               rings: { inner: 5.5, outer: 7.5, texture: createSaturnRingTexture() } },
             { name: 'Neptune', radius: 3.8, distance: 250, speed: 0.0001, rotSpeed: 0.032, texture: createNeptuneTexture(), roughness: 0.3 }
         ];
 
         const planets = [];
+        const allMoons = [];
 
         planetsData.forEach(data => {
+            // Planet Orbit Line
             const points = [];
             for (let i = 0; i <= 128; i++) {
                 const angle = (i / 128) * Math.PI * 2;
                 points.push(new THREE.Vector3(Math.cos(angle) * data.distance, 0, Math.sin(angle) * data.distance));
             }
             const pathGeo = new THREE.BufferGeometry().setFromPoints(points);
-            const orbitLine = new THREE.Line(pathGeo, new THREE.LineBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.5 }));
+            const orbitLine = new THREE.Line(pathGeo, new THREE.LineBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.4 }));
             scene.add(orbitLine);
             orbitLines.push(orbitLine);
 
+            // Planet Mesh
             const mat = new THREE.MeshStandardMaterial({ 
                 map: data.texture, 
                 roughness: data.roughness,
@@ -405,6 +443,7 @@
             const startAngle = Math.random() * Math.PI * 2;
             mesh.position.set(Math.cos(startAngle) * data.distance, 0, Math.sin(startAngle) * data.distance);
 
+            // Saturn / Uranus Rings
             if (data.rings) {
                 const ringGeo = new THREE.RingGeometry(data.rings.inner, data.rings.outer, 64);
                 let pos = ringGeo.attributes.position;
@@ -429,16 +468,53 @@
             scene.add(mesh);
             interactableObjects.push(mesh);
 
+            // Build Sub-Moons if present
+            const moonInstances = [];
+            if (data.moons) {
+                data.moons.forEach(mdata => {
+                    // Moon Orbit Line
+                    const moonPoints = [];
+                    for (let j = 0; j <= 64; j++) {
+                        const mAngle = (j / 64) * Math.PI * 2;
+                        moonPoints.push(new THREE.Vector3(Math.cos(mAngle) * mdata.distance, 0, Math.sin(mAngle) * mdata.distance));
+                    }
+                    const moonPathGeo = new THREE.BufferGeometry().setFromPoints(moonPoints);
+                    const moonOrbitLine = new THREE.Line(moonPathGeo, new THREE.LineBasicMaterial({ color: 0x94a3b8, transparent: true, opacity: 0.35 }));
+                    scene.add(moonOrbitLine);
+                    orbitLines.push(moonOrbitLine);
+
+                    // Moon Mesh
+                    const moonMat = new THREE.MeshStandardMaterial({ map: moonTexture, roughness: 0.8 });
+                    const moonMesh = new THREE.Mesh(sphereGeo, moonMat);
+                    moonMesh.scale.setScalar(mdata.radius);
+                    moonMesh.userData = { name: mdata.name, radius: mdata.radius, isMoon: true, planetName: data.name };
+
+                    scene.add(moonMesh);
+                    interactableObjects.push(moonMesh);
+
+                    const moonObj = {
+                        ...mdata,
+                        mesh: moonMesh,
+                        orbitLine: moonOrbitLine,
+                        angle: Math.random() * Math.PI * 2
+                    };
+
+                    moonInstances.push(moonObj);
+                    allMoons.push(moonObj);
+                });
+            }
+
             planets.push({
                 ...data,
                 mesh: mesh,
                 angle: startAngle,
-                lastPos: mesh.position.clone()
+                lastPos: mesh.position.clone(),
+                moons: moonInstances
             });
         });
 
         // ==========================================
-        // 5. UI CONTROLS & ZOOM SLIDER LOGIC
+        // 5. CONTROLS & UI LOGIC
         // ==========================================
         let isPlaying = true;
         let timeScale = 1.0;
@@ -464,10 +540,8 @@
             currentTarget = null;
         }
 
-        // Programmatically update camera position based on distance
         function setZoomDistance(newDistance) {
             stopCameraTweens();
-            
             const direction = new THREE.Vector3().subVectors(camera.position, controls.target);
             if (direction.lengthSq() === 0) direction.set(0, 0, 1);
             direction.normalize();
@@ -483,25 +557,18 @@
             zoomDisplay.innerText = roundedDist;
         }
 
-        // Event Listener for Zoom Slider
-        zoomSlider.addEventListener('input', (e) => {
-            setZoomDistance(parseFloat(e.target.value));
-        });
+        zoomSlider.addEventListener('input', (e) => setZoomDistance(parseFloat(e.target.value)));
 
-        // Event Listeners for + / - Zoom Buttons
         btnZoomIn.addEventListener('click', () => {
             const currentDist = camera.position.distanceTo(controls.target);
-            const newDist = Math.max(10, currentDist * 0.75);
-            setZoomDistance(newDist);
+            setZoomDistance(Math.max(2, currentDist * 0.75));
         });
 
         btnZoomOut.addEventListener('click', () => {
             const currentDist = camera.position.distanceTo(controls.target);
-            const newDist = Math.min(800, currentDist * 1.3);
-            setZoomDistance(newDist);
+            setZoomDistance(Math.min(800, currentDist * 1.3));
         });
 
-        // Sync Zoom Slider with Mouse Scroll & Orbit Controls Update
         controls.addEventListener('change', () => {
             const currentDist = camera.position.distanceTo(controls.target);
             updateZoomUI(currentDist);
@@ -566,14 +633,17 @@
                 endPos = new THREE.Vector3(0, 20, 60);
                 targetLookAt = new THREE.Vector3(0, 0, 0);
             } else {
-                const p = planets.find(pl => pl.name === targetName);
-                if (!p) return;
+                // Check if target is a planet or a moon
+                let obj = planets.find(p => p.name === targetName);
+                if (!obj) obj = allMoons.find(m => m.name === targetName);
+
+                if (!obj) return;
                 
-                const targetRadius = p.radius;
-                const offset = new THREE.Vector3(targetRadius * 3.5, targetRadius * 1.8, targetRadius * 4.5);
+                const targetRadius = obj.radius;
+                const offset = new THREE.Vector3(targetRadius * 4, targetRadius * 2, targetRadius * 5);
                 
-                endPos = p.mesh.position.clone().add(offset);
-                targetLookAt = p.mesh.position.clone();
+                endPos = obj.mesh.position.clone().add(offset);
+                targetLookAt = obj.mesh.position.clone();
             }
 
             gsap.to(controls.target, {
@@ -620,6 +690,25 @@
                 
                 p.mesh.rotation.y += p.rotSpeed * timeScale;
 
+                // Animate Sub-Moons around host planet
+                p.moons.forEach(m => {
+                    if (isPlaying) {
+                        m.angle += m.speed * timeScale;
+                    }
+                    
+                    // Position moon relative to planet
+                    m.mesh.position.set(
+                        p.mesh.position.x + Math.cos(m.angle) * m.distance,
+                        p.mesh.position.y,
+                        p.mesh.position.z + Math.sin(m.angle) * m.distance
+                    );
+
+                    // Move moon orbit line along with planet
+                    m.orbitLine.position.copy(p.mesh.position);
+                    m.mesh.rotation.y += 0.01 * timeScale;
+                });
+
+                // Camera Tracking for Planets
                 if (currentTarget === p.name && !isAnimatingCamera) {
                     const delta = p.mesh.position.clone().sub(p.lastPos);
                     camera.position.add(delta);
@@ -628,6 +717,14 @@
 
                 p.lastPos.copy(p.mesh.position);
             });
+
+            // Camera Tracking for Moons
+            if (currentTarget && !isAnimatingCamera) {
+                const activeMoon = allMoons.find(m => m.name === currentTarget);
+                if (activeMoon) {
+                    controls.target.copy(activeMoon.mesh.position);
+                }
+            }
 
             controls.update();
             renderer.render(scene, camera);
