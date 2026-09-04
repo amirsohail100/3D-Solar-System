@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmic Hierarchy - Explore the Universe</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- GSAP for Animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Three.js for 3D Background Effect -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #030014;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .glow-text {
+            text-shadow: 0 0 20px rgba(59, 130, 246, 0.5), 0 0 40px rgba(147, 51, 234, 0.3);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-blue-500 selection:text-white">
+
+    <!-- 3D Interactive Background Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- HEADER / NAVBAR -->
+    <header class="w-full px-6 py-5 flex items-center justify-between z-10 max-w-7xl mx-auto">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                <i class="fas fa-globe text-white text-lg"></i>
+            </div>
+            <span class="text-lg font-bold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">COSMIC HIERARCHY</span>
+        </div>
+        <nav class="hidden md:flex items-center gap-8 text-sm text-gray-300 font-medium">
+            <a href="#" class="hover:text-blue-400 transition-colors">Home</a>
+            <a href="#features" class="hover:text-blue-400 transition-colors">Scales</a>
+            <a href="#about" class="hover:text-blue-400 transition-colors">About</a>
+        </nav>
+        <div>
+            <a href="index.html" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-semibold text-xs tracking-wider transition-all shadow-lg shadow-blue-600/30 border border-blue-400/30 flex items-center gap-2">
+                <span>Launch App</span>
+                <i class="fas fa-arrow-right text-[10px]"></i>
+            </a>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <main class="flex-grow flex items-center justify-center px-6 py-12 z-10">
+        <div class="max-w-4xl mx-auto text-center space-y-8">
+            
+            <!-- Badge -->
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass-card border border-blue-500/30 text-xs font-medium text-blue-300 animate-pulse">
+                <i class="fas fa-sparkles text-yellow-400"></i>
+                <span>Interactive 3D Universe Simulation</span>
+            </div>
+
+            <!-- Main Headline -->
+            <h1 class="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-tight">
+                Explore Space From <br>
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-500 glow-text">
+                    Solar System to Multiverse
+                </span>
+            </h1>
+
+            <!-- Subtitle -->
+            <p class="text-sm sm:text-base text-gray-400 max-w-2xl mx-auto leading-relaxed">
+                Dive deep into an immersive 3D cosmos. Analyze planetary orbits, gravitational space fabric deformations, and galactic structures in real-time.
+            </p>
+
+            <!-- Call to Action Buttons -->
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+                <a href="index.html" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 active:scale-95 text-white font-bold text-sm tracking-wide transition-all shadow-xl shadow-blue-600/40 border border-white/20 flex items-center justify-center gap-3">
+                    <i class="fas fa-rocket"></i>
+                    <span>Start Simulation</span>
+                </a>
+                <a href="#features" class="w-full sm:w-auto px-8 py-4 rounded-xl glass-card hover:bg-white/10 active:scale-95 text-white font-semibold text-sm tracking-wide transition-all border border-white/15 flex items-center justify-center gap-3">
+                    <i class="fas fa-info-circle text-blue-400"></i>
+                    <span>Explore Features</span>
+                </a>
+            </div>
+
+            <!-- Feature Quick Cards -->
+            <div id="features" class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-12 text-left">
+                <div class="glass-card p-5 rounded-2xl border border-white/10 hover:border-blue-500/40 transition-all group">
+                    <div class="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 mb-3 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-solar-system text-base"></i>
+                    </div>
+                    <h3 class="text-sm font-bold text-white mb-1">Solar System</h3>
+                    <p class="text-xs text-gray-400 leading-relaxed">Accurate planetary motion, textures, rings, and interactive orbit controls.</p>
+                </div>
+
+                <div class="glass-card p-5 rounded-2xl border border-white/10 hover:border-purple-500/40 transition-all group">
+                    <div class="w-10 h-10 rounded-xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-400 mb-3 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-wave-square text-base"></i>
+                    </div>
+                    <h3 class="text-sm font-bold text-white mb-1">Space Fabric</h3>
+                    <p class="text-xs text-gray-400 leading-relaxed">Visualizing gravitational curvatures and spacetime warp fields dynamically.</p>
+                </div>
+
+                <div class="glass-card p-5 rounded-2xl border border-white/10 hover:border-pink-500/40 transition-all group">
+                    <div class="w-10 h-10 rounded-xl bg-pink-600/20 border border-pink-500/30 flex items-center justify-center text-pink-400 mb-3 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-galaxy text-base"></i>
+                    </div>
+                    <h3 class="text-sm font-bold text-white mb-1">Galactic & Multiverse</h3>
+                    <p class="text-xs text-gray-400 leading-relaxed">Seamless scaling from individual planets out to the expansive Milky Way.</p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="w-full px-6 py-6 border-t border-white/10 text-center text-xs text-gray-500 z-10">
+        <p>© 2026 Cosmic Hierarchy Simulation. Built with Three.js & Tailwind CSS.</p>
+    </footer>
+
+    <!-- 3D Background Script -->
+    <script>
+        const canvas = document.getElementById('bg-canvas');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        // Create Starfield Background
+        const particlesCount = 2000;
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particlesCount * 3);
+
+        for(let i = 0; i < particlesCount * 3; i++) {
+            positions[i] = (Math.random() - 0.5) * 400;
+        }
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const material = new THREE.PointsMaterial({ size: 1.5, color: 0x93c5fd, transparent: true, opacity: 0.8 });
+        const particles = new THREE.Points(geometry, material);
+        scene.add(particles);
+
+        camera.position.z = 100;
+
+        // Mouse Movement Parallax Effect
+        let mouseX = 0, mouseY = 0;
+        window.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX - window.innerWidth / 2) * 0.05;
+            mouseY = (e.clientY - window.innerHeight / 2) * 0.05;
+        });
+
+        // Animation Loop
+        function animate() {
+            requestAnimationFrame(animate);
+            particles.rotation.y += 0.0005;
+            particles.rotation.x += 0.0002;
+
+            camera.position.x += (mouseX - camera.position.x) * 0.05;
+            camera.position.y += (-mouseY - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Responsive Resizing
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
