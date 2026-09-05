@@ -104,9 +104,7 @@ canvas {
   color: #cbd5e1;
   border-radius: 6px;
   cursor: pointer;
-  transition:
-    background 0.2s,
-    color 0.2s;
+  transition: background 0.2s, color 0.2s;
 }
 
 .dropdown-option:hover {
@@ -130,12 +128,6 @@ canvas {
 }
 
 @keyframes fadeInDropdown {
-  from {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
