@@ -198,11 +198,9 @@ for (let i = 0; i < massiveStarsCount; i++) {
     massivePos[i * 3 + 2] = Math.sin(currentAngle) * radius;
 
     const color = new THREE.Color();
-    if (radius < 1600) {
-        color.setHex(0xffea9f);
-    } else {
-        color.setHex(Math.random() > 0.4 ? 0x93c5fd : 0xffffff);
-    }
+    if (radius < 1600) color.setHex(0xffea9f);
+    else color.setHex(Math.random() > 0.4 ? 0x93c5fd : 0xffffff);
+    
     massiveColors[i * 3] = color.r;
     massiveColors[i * 3 + 1] = color.g;
     massiveColors[i * 3 + 2] = color.b;
@@ -219,6 +217,35 @@ const massiveStarsMesh = new THREE.Points(massiveGeo, massiveMat);
 massiveStarsMesh.userData = { name: 'MilkyWay', scaleTier: 'Galaxy' };
 galaxyGroup.add(massiveStarsMesh);
 hierarchyGroup.add(galaxyGroup);
+
+// SUPERMASSIVE BLACK HOLE (Exotic Phenomenon with mouse movement & scrolling effects)
+const blackHoleGroup = new THREE.Group();
+blackHoleGroup.position.set(-6000, 500, -4000);
+
+const bhCore = new THREE.Mesh(
+    new THREE.SphereGeometry(40, 32, 32),
+    new THREE.MeshBasicMaterial({ color: 0x000000 })
+);
+blackHoleGroup.add(bhCore);
+
+const bhDiskGeo = new THREE.RingGeometry(50, 250, 64);
+const bhDiskMat = new THREE.MeshBasicMaterial({
+    color: 0xff5500, side: THREE.DoubleSide, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending
+});
+const bhDisk = new THREE.Mesh(bhDiskGeo, bhDiskMat);
+bhDisk.rotation.x = Math.PI / 2;
+blackHoleGroup.add(bhDisk);
+
+const bhGlowGeo = new THREE.RingGeometry(250, 450, 64);
+const bhGlowMat = new THREE.MeshBasicMaterial({
+    color: 0x9900ff, side: THREE.DoubleSide, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending
+});
+const bhGlow = new THREE.Mesh(bhGlowGeo, bhGlowMat);
+bhGlow.rotation.x = Math.PI / 2;
+blackHoleGroup.add(bhGlow);
+blackHoleGroup.userData = { name: 'BlackHole', scaleTier: 'Phenomenon' };
+hierarchyGroup.add(blackHoleGroup);
+const interactableObjects = [];
 
 // MULTIVERSE DOMAINS
 const multiverseGroup = new THREE.Group();
@@ -293,7 +320,6 @@ const solarSystemGroup = new THREE.Group();
 solarSystemGroup.position.copy(solarSystemOffset);
 scene.add(solarSystemGroup);
 
-const interactableObjects = [];
 const orbitLines = [];
 const sphereGeo = new THREE.SphereGeometry(1, 64, 64);
 
@@ -398,6 +424,57 @@ function updateSpaceFabric() {
     fabricPositions.needsUpdate = true;
 }
 
+// MOUSE & SCROLL INTERACTION FOR BLACK HOLE & SCENE
+let mouseX = 0, mouseY = 0;
+window.addEventListener('mousemove', (e) => {
+    mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+    mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+});
+
+// BIG BANG EXPLOSION EFFECT
+const explosionCount = 3000;
+const explosionGeo = new THREE.BufferGeometry();
+const explosionPos = new Float32Array(explosionCount * 3);
+const explosionVel = [];
+for(let i=0; i<explosionCount; i++) {
+    explosionPos[i*3] = solarSystemOffset.x;
+    explosionPos[i*3+1] = solarSystemOffset.y;
+    explosionPos[i*3+2] = solarSystemOffset.z;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    const speed = 15 + Math.random() * 45;
+    explosionVel.push(new THREE.Vector3(
+        speed * Math.sin(phi) * Math.cos(theta),
+        speed * Math.sin(phi) * Math.sin(theta),
+        speed * Math.cos(phi)
+    ));
+}
+explosionGeo.setAttribute('position', new THREE.BufferAttribute(explosionPos, 3));
+const explosionMat = new THREE.PointsMaterial({ size: 6, color: 0xffaa00, transparent: true, opacity: 0, blending: THREE.AdditiveBlending });
+const explosionMesh = new THREE.Points(explosionGeo, explosionMat);
+scene.add(explosionMesh);
+
+let isBigBangActive = false;
+document.getElementById('btn-big-bang').addEventListener('click', () => {
+    isBigBangActive = true;
+    explosionMat.opacity = 1.0;
+    // Flash light & camera shake effect via GSAP
+    gsap.to(sunLight, { intensity: 80000, duration: 0.3, yoyo: true, repeat: 1 });
+    gsap.fromTo(camera.position, {z: camera.position.z - 100}, {duration: 1.5, ease: "power2.out"});
+    
+    setTimeout(() => {
+        gsap.to(explosionMat, { opacity: 0, duration: 2.0 });
+        isBigBangActive = false;
+        // Reset explosion positions
+        const pos = explosionGeo.attributes.position.array;
+        for(let i=0; i<explosionCount; i++) {
+            pos[i*3] = solarSystemOffset.x;
+            pos[i*3+1] = solarSystemOffset.y;
+            pos[i*3+2] = solarSystemOffset.z;
+        }
+    }, 2500);
+});
+
 // UI & CUSTOM DROPDOWN LOGIC
 let isPlaying = true, timeScale = 1.0, currentTarget = null, isAnimatingCamera = false;
 const uiPanel = document.getElementById('ui-panel');
@@ -407,7 +484,6 @@ document.getElementById('btn-close-menu').addEventListener('click', () => uiPane
 const zoomSlider = document.getElementById('zoom-slider'), zoomDisplay = document.getElementById('zoom-display');
 const activeTargetName = document.getElementById('active-target-name'), tierIndicator = document.getElementById('tier-indicator');
 
-// Custom Dropdown UI functionality
 const customDropdown = document.getElementById('customDropdown');
 const dropdownSelected = customDropdown.querySelector('.dropdown-selected');
 const dropdownOptions = document.getElementById('dropdownOptions');
@@ -465,7 +541,7 @@ function updateZoomUI(distance) {
         zoomOutStarMesh.material.opacity = 0;
         multiverseGroup.children.forEach(m => m.material.opacity = 0);
     } else {
-        tierIndicator.innerText = "Current Scale: Solar System Tier (Off-Center)";
+        tierIndicator.innerText = "Current Scale: Solar System Tier";
         galaxyMat.opacity = 0;
         massiveMat.opacity = 0;
         zoomOutStarMesh.material.opacity = 0;
@@ -503,13 +579,7 @@ window.addEventListener('click', (event) => {
     const intersects = raycaster.intersectObjects(interactableObjects);
     if (intersects.length > 0) {
         const name = intersects[0].object.userData.name;
-        
-        // Sync with custom dropdown selection view
-        options.forEach(opt => {
-            if(opt.getAttribute('data-value') === name) {
-                opt.click();
-            }
-        });
+        options.forEach(opt => { if(opt.getAttribute('data-value') === name) opt.click(); });
     }
 });
 
@@ -524,7 +594,12 @@ function focusOnTarget(targetName) {
     isAnimatingCamera = true;
     let endPos, targetLookAt, displayName = targetName;
 
-    if (targetName === 'Multiverse') {
+    if (targetName === 'BlackHole') {
+        endPos = blackHoleGroup.position.clone().add(new THREE.Vector3(0, 150, 400));
+        targetLookAt = blackHoleGroup.position.clone();
+        displayName = "Supermassive Black Hole";
+        currentTarget = 'BlackHole';
+    } else if (targetName === 'Multiverse') {
         endPos = new THREE.Vector3(0, 8000, 26000); targetLookAt = new THREE.Vector3(0, 0, 0); displayName = "Multiverse Domains"; currentTarget = null;
     } else if (targetName === 'MilkyWay') {
         endPos = new THREE.Vector3(0, 2500, 8000); targetLookAt = new THREE.Vector3(0, 0, 0); displayName = "Milky Way Galaxy"; currentTarget = null;
@@ -555,6 +630,23 @@ function animate() {
     milkyWayMesh.rotation.y += 0.0004 * timeScale;
     massiveStarsMesh.rotation.y += 0.0004 * timeScale;
     multiverseGroup.rotation.y += 0.00008 * timeScale;
+
+    // Black Hole rotation & mouse parallax effect
+    bhDisk.rotation.z += 0.015 * timeScale;
+    bhGlow.rotation.z -= 0.01 * timeScale;
+    blackHoleGroup.rotation.x = mouseY * 0.15;
+    blackHoleGroup.rotation.y = mouseX * 0.15;
+
+    // Big Bang Explosion Animation
+    if (isBigBangActive) {
+        const pos = explosionGeo.attributes.position.array;
+        for(let i=0; i<explosionCount; i++) {
+            pos[i*3] += explosionVel[i].x * timeScale;
+            pos[i*3+1] += explosionVel[i].y * timeScale;
+            pos[i*3+2] += explosionVel[i].z * timeScale;
+        }
+        explosionGeo.attributes.position.needsUpdate = true;
+    }
 
     sunMesh.rotation.y += 0.002 * timeScale;
     sunGlowOuter.rotation.y -= 0.003 * timeScale;
