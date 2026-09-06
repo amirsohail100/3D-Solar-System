@@ -218,7 +218,7 @@ massiveStarsMesh.userData = { name: 'MilkyWay', scaleTier: 'Galaxy' };
 galaxyGroup.add(massiveStarsMesh);
 hierarchyGroup.add(galaxyGroup);
 
-// SUPERMASSIVE BLACK HOLE (Exotic Phenomenon with mouse movement & scrolling effects)
+// SUPERMASSIVE BLACK HOLE
 const blackHoleGroup = new THREE.Group();
 blackHoleGroup.position.set(-6000, 500, -4000);
 
@@ -318,7 +318,8 @@ scene.add(zoomOutStarMesh);
 // SOLAR SYSTEM GROUP
 const solarSystemGroup = new THREE.Group();
 solarSystemGroup.position.copy(solarSystemOffset);
-scene.add(solarSystemGroup);
+solarSystemGroup.name = "SolarSystemGroup";
+hierarchyGroup.add(solarSystemGroup);
 
 const orbitLines = [];
 const sphereGeo = new THREE.SphereGeometry(1, 64, 64);
@@ -431,8 +432,11 @@ window.addEventListener('mousemove', (e) => {
     mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
 });
 
-// BIG BANG EXPLOSION EFFECT
-const explosionCount = 3000;
+// BIG BANG & UNIVERSE EVOLUTION LOGIC
+let isBigBangActive = false;
+let bigBangStage = 0; // 0: Normal, 1: Contracting to point, 2: Exploding & Expanding
+
+const explosionCount = 8000;
 const explosionGeo = new THREE.BufferGeometry();
 const explosionPos = new Float32Array(explosionCount * 3);
 const explosionVel = [];
@@ -442,7 +446,7 @@ for(let i=0; i<explosionCount; i++) {
     explosionPos[i*3+2] = solarSystemOffset.z;
     const theta = Math.random() * Math.PI * 2;
     const phi = Math.acos(2 * Math.random() - 1);
-    const speed = 15 + Math.random() * 45;
+    const speed = 20 + Math.random() * 60;
     explosionVel.push(new THREE.Vector3(
         speed * Math.sin(phi) * Math.cos(theta),
         speed * Math.sin(phi) * Math.sin(theta),
@@ -450,29 +454,39 @@ for(let i=0; i<explosionCount; i++) {
     ));
 }
 explosionGeo.setAttribute('position', new THREE.BufferAttribute(explosionPos, 3));
-const explosionMat = new THREE.PointsMaterial({ size: 6, color: 0xffaa00, transparent: true, opacity: 0, blending: THREE.AdditiveBlending });
+const explosionMat = new THREE.PointsMaterial({ size: 8, color: 0xffaa33, transparent: true, opacity: 0, blending: THREE.AdditiveBlending });
 const explosionMesh = new THREE.Points(explosionGeo, explosionMat);
 scene.add(explosionMesh);
 
-let isBigBangActive = false;
 document.getElementById('btn-big-bang').addEventListener('click', () => {
+    if (isBigBangActive) return;
     isBigBangActive = true;
-    explosionMat.opacity = 1.0;
-    // Flash light & camera shake effect via GSAP
-    gsap.to(sunLight, { intensity: 80000, duration: 0.3, yoyo: true, repeat: 1 });
-    gsap.fromTo(camera.position, {z: camera.position.z - 100}, {duration: 1.5, ease: "power2.out"});
+    bigBangStage = 1; // Stage 1: Contraction to a single point
+
+    gsap.to(sunLight, { intensity: 150000, duration: 0.5, yoyo: true, repeat: 1 });
     
-    setTimeout(() => {
-        gsap.to(explosionMat, { opacity: 0, duration: 2.0 });
-        isBigBangActive = false;
-        // Reset explosion positions
-        const pos = explosionGeo.attributes.position.array;
-        for(let i=0; i<explosionCount; i++) {
-            pos[i*3] = solarSystemOffset.x;
-            pos[i*3+1] = solarSystemOffset.y;
-            pos[i*3+2] = solarSystemOffset.z;
+    // Collapse entire hierarchy to 0.001 scale (singularity point)
+    gsap.to(hierarchyGroup.scale, { 
+        x: 0.001, y: 0.001, z: 0.001, 
+        duration: 1.5, 
+        ease: "power3.in", 
+        onComplete: () => {
+            bigBangStage = 2; // Stage 2: Blast & Expand outward
+            explosionMat.opacity = 1.0;
+            hierarchyGroup.scale.set(0.001, 0.001, 0.001);
+            
+            // Progressive expansion over time
+            gsap.to(hierarchyGroup.scale, { 
+                x: 1, y: 1, z: 1, 
+                duration: 5.0, 
+                ease: "power2.out",
+                onComplete: () => {
+                    isBigBangActive = false;
+                    bigBangStage = 0;
+                }
+            });
         }
-    }, 2500);
+    });
 });
 
 // UI & CUSTOM DROPDOWN LOGIC
@@ -637,15 +651,21 @@ function animate() {
     blackHoleGroup.rotation.x = mouseY * 0.15;
     blackHoleGroup.rotation.y = mouseX * 0.15;
 
-    // Big Bang Explosion Animation
+    // Big Bang Expansion Animation
     if (isBigBangActive) {
         const pos = explosionGeo.attributes.position.array;
         for(let i=0; i<explosionCount; i++) {
-            pos[i*3] += explosionVel[i].x * timeScale;
-            pos[i*3+1] += explosionVel[i].y * timeScale;
-            pos[i*3+2] += explosionVel[i].z * timeScale;
+            if (bigBangStage === 2) {
+                pos[i*3] += explosionVel[i].x * timeScale * 1.5;
+                pos[i*3+1] += explosionVel[i].y * timeScale * 1.5;
+                pos[i*3+2] += explosionVel[i].z * timeScale * 1.5;
+            }
         }
         explosionGeo.attributes.position.needsUpdate = true;
+
+        if (bigBangStage === 2) {
+            explosionMat.opacity -= 0.003 * timeScale;
+        }
     }
 
     sunMesh.rotation.y += 0.002 * timeScale;
