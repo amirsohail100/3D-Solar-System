@@ -16,3 +16,21 @@ An immersive, real-time 3D interactive web application built with **Three.js** t
 - **Interactive Space Fabric (Spacetime Grid):** High-poly dynamic mesh that deforms in real-time based on the gravitational mass of the Sun and orbiting planets.
 - **Cinematic Camera Control & GSAP Animation:** Smooth, automated camera transitions and responsive controls to target specific celestial bodies instantly.
 - **Custom Glassmorphism UI:** Modern, collapsible dashboard panel built with Tailwind CSS and FontAwesome icons for easy controls, zoom adjustments, and target switching.
+
+---
+
+## ⚙️ Tech Stack & Architecture
+
+- **Core Rendering:** JavaScript ES6+, WebGL via Three.js (v0.160.0)
+- **Camera & Scene Controls:** Three.js `OrbitControls` with damping and custom boundaries
+- **Animations & Tweens:** GSAP (GreenSock Animation Platform v3.12.5) for smooth camera interpolation and UI transitions
+- **Styling Framework:** Tailwind CSS for modern responsive utility-first layout design
+- **Icons:** FontAwesome v6.4.0
+
+### Project Directory Structure
+
+```text
+├── index.html         # Main entry point with UI layout and import maps
+├── style.css          # Custom glassmorphism styles and UI animations
+└── script.js          # Core simulation logic, procedural texture generators, and animation loop
+```
