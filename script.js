@@ -425,66 +425,115 @@ function updateSpaceFabric() {
     fabricPositions.needsUpdate = true;
 }
 
-// MOUSE & SCROLL INTERACTION FOR BLACK HOLE & SCENE
+// MOUSE INTERACTION FOR BLACK HOLE
 let mouseX = 0, mouseY = 0;
 window.addEventListener('mousemove', (e) => {
     mouseX = (e.clientX / window.innerWidth) * 2 - 1;
     mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
 });
 
-// BIG BANG & UNIVERSE EVOLUTION LOGIC
+// TRUE BIG BANG STARBURST & NEWBORN PLANETS SYSTEM
 let isBigBangActive = false;
-let bigBangStage = 0; // 0: Normal, 1: Contracting to point, 2: Exploding & Expanding
+let bigBangStage = 0; // 0: Normal, 1: Singularity collapse, 2: Cataclysmic Star/Planet birth blast
 
-const explosionCount = 8000;
-const explosionGeo = new THREE.BufferGeometry();
-const explosionPos = new Float32Array(explosionCount * 3);
-const explosionVel = [];
-for(let i=0; i<explosionCount; i++) {
-    explosionPos[i*3] = solarSystemOffset.x;
-    explosionPos[i*3+1] = solarSystemOffset.y;
-    explosionPos[i*3+2] = solarSystemOffset.z;
+// Massive Starburst Particles
+const bigBangStarCount = 20000;
+const bbStarsGeo = new THREE.BufferGeometry();
+const bbStarsPos = new Float32Array(bigBangStarCount * 3);
+const bbStarsVel = [];
+const bbStarsColors = new Float32Array(bigBangStarCount * 3);
+
+for(let i=0; i<bigBangStarCount; i++) {
+    bbStarsPos[i*3] = solarSystemOffset.x;
+    bbStarsPos[i*3+1] = solarSystemOffset.y;
+    bbStarsPos[i*3+2] = solarSystemOffset.z;
+
     const theta = Math.random() * Math.PI * 2;
     const phi = Math.acos(2 * Math.random() - 1);
-    const speed = 20 + Math.random() * 60;
-    explosionVel.push(new THREE.Vector3(
+    const speed = 40 + Math.random() * 250; // High speed outward blast
+    bbStarsVel.push(new THREE.Vector3(
         speed * Math.sin(phi) * Math.cos(theta),
         speed * Math.sin(phi) * Math.sin(theta),
         speed * Math.cos(phi)
     ));
+
+    const color = new THREE.Color();
+    const randCol = Math.random();
+    if(randCol > 0.6) color.setHex(0xffaa33); // Orange/Gold
+    else if(randCol > 0.3) color.setHex(0x38bdf8); // Cyan/Blue
+    else color.setHex(0xffffff); // Bright White
+
+    bbStarsColors[i*3] = color.r;
+    bbStarsColors[i*3+1] = color.g;
+    bbStarsColors[i*3+2] = color.b;
 }
-explosionGeo.setAttribute('position', new THREE.BufferAttribute(explosionPos, 3));
-const explosionMat = new THREE.PointsMaterial({ size: 8, color: 0xffaa33, transparent: true, opacity: 0, blending: THREE.AdditiveBlending });
-const explosionMesh = new THREE.Points(explosionGeo, explosionMat);
-scene.add(explosionMesh);
+bbStarsGeo.setAttribute('position', new THREE.BufferAttribute(bbStarsPos, 3));
+bbStarsGeo.setAttribute('color', new THREE.BufferAttribute(bbStarsColors, 3));
+const bbStarsMat = new THREE.PointsMaterial({ size: 5.5, vertexColors: true, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
+const bbStarsMesh = new THREE.Points(bbStarsGeo, bbStarsMat);
+scene.add(bbStarsMesh);
+
+// Newborn Giant Glowing Orbs/Planets flying outward off-screen
+const newbornOrbsGroup = new THREE.Group();
+newbornOrbsGroup.position.copy(solarSystemOffset);
+scene.add(newbornOrbsGroup);
+
+const newbornPlanets = [];
+for(let i=0; i<5; i++) {
+    const orbGeo = new THREE.SphereGeometry(15 + Math.random() * 15, 32, 32);
+    const orbMat = new THREE.MeshBasicMaterial({ 
+        color: new THREE.Color().setHSL(Math.random(), 0.9, 0.6), 
+        transparent: true, 
+        opacity: 0,
+        blending: THREE.AdditiveBlending 
+    });
+    const orbMesh = new THREE.Mesh(orbGeo, orbMat);
+    orbMesh.position.copy(solarSystemOffset);
+    newbornOrbsGroup.add(orbMesh);
+
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    const dir = new THREE.Vector3(
+        Math.sin(phi) * Math.cos(theta),
+        Math.sin(phi) * Math.sin(theta),
+        Math.cos(phi)
+    ).normalize();
+    newbornPlanets.push({ mesh: orbMesh, dir: dir, speed: 30 + Math.random() * 60 });
+}
 
 document.getElementById('btn-big-bang').addEventListener('click', () => {
     if (isBigBangActive) return;
     isBigBangActive = true;
-    bigBangStage = 1; // Stage 1: Contraction to a single point
+    bigBangStage = 1;
 
-    gsap.to(sunLight, { intensity: 150000, duration: 0.5, yoyo: true, repeat: 1 });
+    // Flash light & fade/collapse existing universe into singularity
+    gsap.to(sunLight, { intensity: 200000, duration: 0.4, yoyo: true, repeat: 1 });
     
-    // Collapse entire hierarchy to 0.001 scale (singularity point)
+    // Step 1: Current universe shrinks completely into a point
     gsap.to(hierarchyGroup.scale, { 
-        x: 0.001, y: 0.001, z: 0.001, 
-        duration: 1.5, 
-        ease: "power3.in", 
+        x: 0.0001, y: 0.0001, z: 0.0001, 
+        duration: 1.2, 
+        ease: "power4.in", 
         onComplete: () => {
-            bigBangStage = 2; // Stage 2: Blast & Expand outward
-            explosionMat.opacity = 1.0;
-            hierarchyGroup.scale.set(0.001, 0.001, 0.001);
+            bigBangStage = 2; // Step 2: Explosion of new stars and giant proto-planets
+            bbStarsMat.opacity = 1.0;
+            newbornPlanets.forEach(p => p.mesh.material.opacity = 0.9);
             
-            // Progressive expansion over time
-            gsap.to(hierarchyGroup.scale, { 
-                x: 1, y: 1, z: 1, 
-                duration: 5.0, 
-                ease: "power2.out",
-                onComplete: () => {
-                    isBigBangActive = false;
-                    bigBangStage = 0;
-                }
-            });
+            // Keep old universe hidden while new cosmic birth expands
+            hierarchyGroup.scale.set(0, 0, 0);
+
+            // Expand starburst and new planets massively off-screen
+            gsap.to(bbStarsMat, { opacity: 0, duration: 6.0, delay: 2.0 });
+            gsap.setTimeout ? setTimeout(() => {
+                // Restore and reset universe with fresh state after cataclysmic blast
+                hierarchyGroup.scale.set(1, 1, 1);
+                isBigBangActive = false;
+                bigBangStage = 0;
+            }, 6000) : setTimeout(() => {
+                hierarchyGroup.scale.set(1, 1, 1);
+                isBigBangActive = false;
+                bigBangStage = 0;
+            }, 6000);
         }
     });
 });
@@ -651,21 +700,20 @@ function animate() {
     blackHoleGroup.rotation.x = mouseY * 0.15;
     blackHoleGroup.rotation.y = mouseX * 0.15;
 
-    // Big Bang Expansion Animation
-    if (isBigBangActive) {
-        const pos = explosionGeo.attributes.position.array;
-        for(let i=0; i<explosionCount; i++) {
-            if (bigBangStage === 2) {
-                pos[i*3] += explosionVel[i].x * timeScale * 1.5;
-                pos[i*3+1] += explosionVel[i].y * timeScale * 1.5;
-                pos[i*3+2] += explosionVel[i].z * timeScale * 1.5;
-            }
+    // True Big Bang Starburst & Expanding Newborn Orbs Animation
+    if (isBigBangActive && bigBangStage === 2) {
+        const pos = bbStarsGeo.attributes.position.array;
+        for(let i=0; i<bigBangStarCount; i++) {
+            pos[i*3] += bbStarsVel[i].x * timeScale * 0.8;
+            pos[i*3+1] += bbStarsVel[i].y * timeScale * 0.8;
+            pos[i*3+2] += bbStarsVel[i].z * timeScale * 0.8;
         }
-        explosionGeo.attributes.position.needsUpdate = true;
+        bbStarsGeo.attributes.position.needsUpdate = true;
 
-        if (bigBangStage === 2) {
-            explosionMat.opacity -= 0.003 * timeScale;
-        }
+        newbornPlanets.forEach(p => {
+            p.mesh.position.addScaledVector(p.dir, p.speed * timeScale);
+            p.mesh.scale.addScalar(0.015 * timeScale); // Grow giant as they fly out
+        });
     }
 
     sunMesh.rotation.y += 0.002 * timeScale;
@@ -693,4 +741,4 @@ function animate() {
     renderer.render(scene, camera);
 }
 
-animate();
+animate(); 
