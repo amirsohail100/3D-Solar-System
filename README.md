@@ -53,7 +53,8 @@ Experience the interactive simulation live in your browser right now! Click the 
 ### Project Directory Structure
 
 ```text
-├── index.html         # Main entry point with UI layout and import maps
+├── index.html         # Optional landing page or additional interface
+├── space.html         # Main entry point with UI layout and import maps
 ├── style.css          # Custom glassmorphism styles and UI animations
 └── script.js          # Core simulation logic, procedural texture generators, and animation loop
 ```
