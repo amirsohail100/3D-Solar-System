@@ -21,6 +21,17 @@ An immersive, high-performance real-time 3D interactive web application built wi
 
 ---
 
+## 🚀 Live Demo & Quick Access
+
+Experience the interactive simulation live in your browser right now! Click the link below to access the deployed application:
+
+- **🔗 Live Web App URL:** [https://<YOUR_LIVE_URL_HERE>.onrender.com](https://<YOUR_LIVE_URL_HERE>.onrender.com)
+- **📂 GitHub Repository:** [https://github.com/amirsohail100/cosmic-hierarchy](https://github.com/amirsohail100/cosmic-hierarchy)
+
+> _Note: Replace `https://<YOUR_LIVE_URL_HERE>.onrender.com` with your actual Render deployment link or GitHub Pages URL._
+
+---
+
 ## 🌟 Overview & Key Features
 
 - **Multi-Tier Cosmic Scale:** Seamlessly zoom and navigate through different cosmological tiers, including the Solar System, the Milky Way Galaxy, Supermassive Black Holes, and Multiverse domains.
