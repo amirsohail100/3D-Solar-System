@@ -21,14 +21,14 @@ An immersive, high-performance real-time 3D interactive web application built wi
 
 ---
 
-## 🚀 Live Demo & Quick Access
+## 🚀 Live Demo & Preview
 
-Experience the interactive simulation live in your browser right now! Click the link below to access the deployed application:
+Experience the interactive simulation live in your browser right now! Click the links below to access or preview the application:
 
-- **🔗 Live Web App URL:** [https://<YOUR_LIVE_URL_HERE>.onrender.com](https://<YOUR_LIVE_URL_HERE>.onrender.com)
-- **📂 GitHub Repository:** [https://github.com/amirsohail100/cosmic-hierarchy](https://github.com/amirsohail100/cosmic-hierarchy)
+- **🌐 Live Web App URL:** [https://<YOUR_LIVE_URL_HERE>.onrender.com](https://<YOUR_LIVE_URL_HERE>.onrender.com)
+- **🖥️ Live Preview / Hosted Demo:** [https://<YOUR_PREVIEW_URL_HERE>](https://<YOUR_PREVIEW_URL_HERE>)
 
-> _Note: Replace `https://<YOUR_LIVE_URL_HERE>.onrender.com` with your actual Render deployment link or GitHub Pages URL._
+> _Note: Replace the placeholder URLs with your actual Render deployment link and live preview/hosting URL._
 
 ---
 
