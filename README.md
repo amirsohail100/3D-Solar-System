@@ -25,8 +25,8 @@ An immersive, high-performance real-time 3D interactive web application built wi
 
 Experience the interactive simulation live in your browser right now! Click the links below to access or preview the application:
 
-- **🌐 Live Web App URL:** [https://<YOUR_LIVE_URL_HERE>.onrender.com](https://<YOUR_LIVE_URL_HERE>.onrender.com)
-- **🖥️ Live Preview / Hosted Demo:** [https://<YOUR_PREVIEW_URL_HERE>](https://<YOUR_PREVIEW_URL_HERE>)
+- **🌐 Live Web App URL:** [https://threed-solar-system-eoff.onrender.com](https://<YOUR_LIVE_URL_HERE>.onrender.com)
+- **🖥️ Live Preview / Hosted Demo:** [assets/UI.png](https://<YOUR_PREVIEW_URL_HERE>)
 
 > _Note: Replace the placeholder URLs with your actual Render deployment link and live preview/hosting URL._
 
