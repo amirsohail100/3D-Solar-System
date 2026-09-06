@@ -26,8 +26,9 @@ An immersive, high-performance real-time 3D interactive web application built wi
 Experience the interactive simulation live in your browser right now! Click the links below to access or preview the application:
 
 - **🌐 Live Web App URL:** [https://threed-solar-system-eoff.onrender.com](https://threed-solar-system-eoff.onrender.com)
-- **🖥️ Live Preview / Hosted Demo:** [assets/UI.png](assets/UI.png)
-
+<p align="center">
+  <img src="assets/UI.png" alt="Cosmic Hierarchy UI Preview" width="100%" style="border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+</p>
 > _Note: Replace the placeholder URLs with your actual Render deployment link and live preview/hosting URL._
 
 ---
