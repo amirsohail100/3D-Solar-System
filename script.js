@@ -741,4 +741,8 @@ function animate() {
     renderer.render(scene, camera);
 }
 
+<<<<<<< HEAD
 animate();
+=======
+animate(); 
+>>>>>>> b9f42ee3b3dec761c4543021eb76ba4531f3b461
