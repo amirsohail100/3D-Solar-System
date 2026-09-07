@@ -62,3 +62,13 @@ Experience the interactive simulation live in your browser right now! Click the 
 ├── README.md          # This file
 └── script.js          # Core simulation logic, procedural texture generators, and animation loop
 ```
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## 📝 Author
+
+👤 **Amir Sohail**
+
+---
