@@ -56,6 +56,7 @@ Experience the interactive simulation live in your browser right now! Click the 
 ```text
 ├── index.html         # Optional landing page or additional interface
 ├── assets/            # Folder containing textures, icons, and other static assets
+|     └── UI.png         # UI preview image
 ├── space.html         # Main entry point with UI layout and import maps
 ├── style.css          # Custom glassmorphism styles and UI animations
 ├── README.md          # This file
