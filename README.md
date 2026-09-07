@@ -51,7 +51,7 @@ Experience the interactive simulation live in your browser right now! Click the 
 - **Styling Framework:** Tailwind CSS for modern responsive utility-first layout design
 - **Icons & Assets:** FontAwesome v6.4.0
 
-### Project Directory Structure
+## 📂 Project Directory Structure
 
 ```text
 ├── index.html         # Optional landing page or additional interface
@@ -63,6 +63,8 @@ Experience the interactive simulation live in your browser right now! Click the 
 └── script.js          # Core simulation logic, procedural texture generators, and animation loop
 ```
 
+---
+
 ```bash
 git clone https://github.com/amirsohail100/AI-vs-Human-Text-Detection-using-Deep-Learning-LSTM-.git
 ```
@@ -70,6 +72,8 @@ git clone https://github.com/amirsohail100/AI-vs-Human-Text-Detection-using-Deep
 ```bash
 cd AI-vs-Human-Text-Detection-using-Deep-Learning-LSTM
 ```
+
+---
 
 ## 📄 License
 
