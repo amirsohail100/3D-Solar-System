@@ -63,6 +63,14 @@ Experience the interactive simulation live in your browser right now! Click the 
 └── script.js          # Core simulation logic, procedural texture generators, and animation loop
 ```
 
+```bash
+git clone https://github.com/amirsohail100/AI-vs-Human-Text-Detection-using-Deep-Learning-LSTM-.git
+```
+
+```bash
+cd AI-vs-Human-Text-Detection-using-Deep-Learning-LSTM
+```
+
 ## 📄 License
 
 This project is licensed under the MIT License.
